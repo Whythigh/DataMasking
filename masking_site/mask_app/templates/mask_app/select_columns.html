@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Select Columns to Mask</title>
+  <style>
+      /* Reset default margins and set a clean font */
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: "Arial", sans-serif;
+      }
+
+      /* Full-page flex container */
+      body {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          background: rgb(208,198,204);
+           background: linear-gradient(90deg, rgba(208,198,204,1) 1%, rgba(203,209,214,1) 100%);
+          padding: 1rem;
+      }
+
+      /* Card container */
+      .select-box {
+          background: #fff;
+          padding: 2rem;
+          border-radius: 12px;
+          box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+          text-align: center;
+          max-width: 450px;
+          width: 100%;
+      }
+
+      h1 {
+          color: #333;
+          margin-bottom: 1rem;
+      }
+
+      p {
+          color: #666;
+          font-size: 0.9rem;
+          margin-bottom: 1.5rem;
+          line-height: 1.4;
+      }
+
+      .select-all-row {
+          margin-bottom: 1.2rem;
+          text-align: left;
+      }
+
+      .column-row {
+          text-align: left;
+          background: #f9f9f9;
+          padding: 10px;
+          border-radius: 6px;
+          margin-bottom: 0.8rem;
+          display: flex;
+          flex-direction: column;
+      }
+
+      .column-row label {
+          font-weight: bold;
+          color: #333;
+      }
+
+      .approach-options {
+          margin-top: 5px;
+          padding-left: 20px;
+      }
+
+      /* Button styling */
+      button {
+          margin-top: 1.5rem;
+          padding: 0.75rem 1.5rem;
+          background: #2575fc;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 1rem;
+          transition: background 0.3s ease;
+      }
+      button:hover {
+          background: #1b5fd9;
+      }
+  </style>
+</head>
+<body>
+  <div class="select-box">
+      <h1>Select Columns to Mask</h1>
+      <p>
+        <strong>Format Preserving Encryption (FPE)</strong> keeps the same length and format
+        of the original data, so it looks similar but is scrambled. <br>
+        <strong>XXX</strong> simply replaces the entire column with the literal string "XXX."
+      </p>
+
+      <form method="post" action="{% url 'mask_columns' %}">
+          {% csrf_token %}
+          <p>Please check the columns you want to mask, and pick a masking approach for each:</p>
+
+          <!-- "Select All" checkbox -->
+          <div class="select-all-row">
+              <label>
+                  <input type="checkbox" id="selectAll" onclick="toggleAllColumns(this)">
+                  Select All Columns (sets approach to FPE)
+              </label>
+          </div>
+
+          <!-- Loop over each column choice manually -->
+          {% for value, label in form.fields.columns.choices %}
+            <div class="column-row">
+              <label>
+                <!-- By default, not checked -->
+                <input type="checkbox" name="columns" value="{{ value }}">
+                {{ label }}
+              </label>
+              <div class="approach-options">
+                <!-- Neither radio is checked by default -->
+                <label>
+                  <input type="radio" name="approach_{{ value }}" value="fpe">
+                  FPE
+                </label>
+                <label style="margin-left: 10px;">
+                  <input type="radio" name="approach_{{ value }}" value="xxx">
+                  XXX
+                </label>
+              </div>
+            </div>
+          {% endfor %}
+
+          <button type="submit">Apply Masking</button>
+      </form>
+  </div>
+
+  <script>
+    function toggleAllColumns(selectAllCheckbox) {
+      // Get all column checkboxes
+      const columnCheckboxes = document.querySelectorAll('input[name="columns"]');
+
+      columnCheckboxes.forEach(cb => {
+        // Check or uncheck each column
+        cb.checked = selectAllCheckbox.checked;
+
+        // If "Select All" is checked, set approach to FPE for each column
+        const approachFpe = document.querySelector(`input[name="approach_${cb.value}"][value="fpe"]`);
+        const approachXxx = document.querySelector(`input[name="approach_${cb.value}"][value="xxx"]`);
+        if (selectAllCheckbox.checked) {
+          // FPE is selected
+          if (approachFpe) approachFpe.checked = true;
+        } else {
+          // Clear any approach
+          if (approachFpe) approachFpe.checked = false;
+          if (approachXxx) approachXxx.checked = false;
+        }
+      });
+    }
+  </script>
+</body>
+</html>
