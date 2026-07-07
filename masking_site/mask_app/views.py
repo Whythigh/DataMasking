@@ -220,7 +220,19 @@ def mask_file_api(request):
         df.to_csv(output, index=False)
         mime = 'text/csv'
     else:
-        df.to_excel(output, index=False, engine='openpyxl')
+        # build a summary of what was masked
+        all_cols = list(df.columns)
+        summary_rows = []
+        for col in all_cols:
+            if col in masked_fields:
+                summary_rows.append({'Column': col, 'Status': 'MASKED', 'Reason': 'PII detected'})
+            else:
+                summary_rows.append({'Column': col, 'Status': 'unchanged', 'Reason': 'no PII detected'})
+        summary_df = pd.DataFrame(summary_rows)
+
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Masked Data')
+            summary_df.to_excel(writer, index=False, sheet_name='DataRepli Summary')
         mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
     output.seek(0)
