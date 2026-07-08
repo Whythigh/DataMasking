@@ -14,37 +14,51 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 # FIX 1: move masked_values inside functions — global dict is shared across all users
-def mask_value(value, mapping):
-    """Pass mapping dict per-request, not global."""
-    if value in mapping:
-        return mapping[value]
+def mask_columns(request):
+    if request.method == 'POST':
+        df_json = request.session.get('dataframe')
+        if not df_json:
+            return HttpResponse("Session expired. Please upload your file again.")
+        df = pd.read_json(io.StringIO(df_json))
+        selected_columns = request.POST.getlist('columns')
+        if not selected_columns:
+            return HttpResponse("No columns selected.")
 
-    if isinstance(value, str) and len(value) > 1:
-        value_list = list(value)
-        letter_indices = [i for i, c in enumerate(value_list) if c.isalpha()]
-        if len(letter_indices) >= 2:
-            idx1, idx2 = random.sample(letter_indices, 2)
-            value_list[idx1] = random.choice(string.ascii_letters)
-            value_list[idx2] = random.choice(string.ascii_letters)
-        new_value = ''.join(value_list)
-    elif isinstance(value, (int, float)):
-        value_str = str(value)
-        digit_indices = [i for i, c in enumerate(value_str) if c.isdigit()]
-        if len(digit_indices) >= 2:
-            idx1, idx2 = random.sample(digit_indices, 2)
-            value_list = list(value_str)
-            value_list[idx1] = random.choice(string.digits)
-            value_list[idx2] = random.choice(string.digits)
-            new_value = float(''.join(value_list)) if '.' in value_str else int(''.join(value_list))
-        else:
-            new_value = value
-    elif isinstance(value, pd.Timestamp):
-        new_value = value + pd.DateOffset(days=random.randint(1, 365))
-    else:
-        new_value = value
+        mapping = {}
+        try:
+            for col in selected_columns:
+                approach = request.POST.get(f"approach_{col}", 'fpe')
+                if approach == 'xxx':
+                    df[col] = "XXX"
+                else:
+                    df[col] = df[col].apply(lambda v: mask_value(v, mapping))
+        except Exception as e:
+            return HttpResponse(f"Error during masking: {e}")
 
-    mapping[value] = new_value
-    return new_value
+        # build summary of what was masked
+        summary_rows = []
+        for col in df.columns:
+            if col in selected_columns:
+                summary_rows.append({'Column': col, 'Status': 'MASKED', 'Reason': 'selected by user'})
+            else:
+                summary_rows.append({'Column': col, 'Status': 'unchanged', 'Reason': 'not selected'})
+        summary_df = pd.DataFrame(summary_rows)
+
+        # return Excel with two sheets
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Masked Data')
+            summary_df.to_excel(writer, index=False, sheet_name='DataRepli Summary')
+        output.seek(0)
+
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="masked_data.xlsx"'
+        return response
+
+    return HttpResponse("Invalid request method.")
 
 # FIX 2: add home view
 def home(request):
