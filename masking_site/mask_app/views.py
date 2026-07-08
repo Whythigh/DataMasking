@@ -4,65 +4,56 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .forms import UploadFileForm, ColumnSelectForm
 import pandas as pd
-import io
 import random
 import string
+import io
 import base64
 import re
 import hashlib
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-# FIX 1: move masked_values inside functions — global dict is shared across all users
-def mask_columns(request):
-    if request.method == 'POST':
-        df_json = request.session.get('dataframe')
-        if not df_json:
-            return HttpResponse("Session expired. Please upload your file again.")
-        df = pd.read_json(io.StringIO(df_json))
-        selected_columns = request.POST.getlist('columns')
-        if not selected_columns:
-            return HttpResponse("No columns selected.")
 
-        mapping = {}
-        try:
-            for col in selected_columns:
-                approach = request.POST.get(f"approach_{col}", 'fpe')
-                if approach == 'xxx':
-                    df[col] = "XXX"
-                else:
-                    df[col] = df[col].apply(lambda v: mask_value(v, mapping))
-        except Exception as e:
-            return HttpResponse(f"Error during masking: {e}")
+# ── Core masking function ───────────────────────────────────────
 
-        # build summary of what was masked
-        summary_rows = []
-        for col in df.columns:
-            if col in selected_columns:
-                summary_rows.append({'Column': col, 'Status': 'MASKED', 'Reason': 'selected by user'})
-            else:
-                summary_rows.append({'Column': col, 'Status': 'unchanged', 'Reason': 'not selected'})
-        summary_df = pd.DataFrame(summary_rows)
+def mask_value(value, mapping):
+    if value in mapping:
+        return mapping[value]
 
-        # return Excel with two sheets
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name='Masked Data')
-            summary_df.to_excel(writer, index=False, sheet_name='DataRepli Summary')
-        output.seek(0)
+    if isinstance(value, str) and len(value) > 1:
+        value_list = list(value)
+        letter_indices = [i for i, c in enumerate(value_list) if c.isalpha()]
+        if len(letter_indices) >= 2:
+            idx1, idx2 = random.sample(letter_indices, 2)
+            value_list[idx1] = random.choice(string.ascii_letters)
+            value_list[idx2] = random.choice(string.ascii_letters)
+        new_value = ''.join(value_list)
+    elif isinstance(value, (int, float)):
+        value_str = str(value)
+        digit_indices = [i for i, c in enumerate(value_str) if c.isdigit()]
+        if len(digit_indices) >= 2:
+            idx1, idx2 = random.sample(digit_indices, 2)
+            value_list = list(value_str)
+            value_list[idx1] = random.choice(string.digits)
+            value_list[idx2] = random.choice(string.digits)
+            joined = ''.join(value_list)
+            new_value = float(joined) if '.' in value_str else int(joined)
+        else:
+            new_value = value
+    elif isinstance(value, pd.Timestamp):
+        new_value = value + pd.DateOffset(days=random.randint(1, 365))
+    else:
+        new_value = value
 
-        response = HttpResponse(
-            output.read(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename="masked_data.xlsx"'
-        return response
+    mapping[value] = new_value
+    return new_value
 
-    return HttpResponse("Invalid request method.")
 
-# FIX 2: add home view
+# ── Web pages ───────────────────────────────────────────────────
+
 def home(request):
     return render(request, 'index.html')
+
 
 def upload_file(request):
     if request.method == 'POST':
@@ -88,6 +79,7 @@ def upload_file(request):
         form = UploadFileForm()
     return render(request, 'mask_app/upload.html', {'form': form})
 
+
 def mask_columns(request):
     if request.method == 'POST':
         df_json = request.session.get('dataframe')
@@ -98,7 +90,6 @@ def mask_columns(request):
         if not selected_columns:
             return HttpResponse("No columns selected.")
 
-        # FIX 3: per-request mapping dict instead of global
         mapping = {}
         try:
             for col in selected_columns:
@@ -110,12 +101,30 @@ def mask_columns(request):
         except Exception as e:
             return HttpResponse(f"Error during masking: {e}")
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="masked_data.csv"'
-        df.to_csv(response, index=False)
+        # build summary
+        summary_rows = []
+        for col in df.columns:
+            if col in selected_columns:
+                summary_rows.append({'Column': col, 'Status': 'MASKED', 'Reason': 'selected by user'})
+            else:
+                summary_rows.append({'Column': col, 'Status': 'unchanged', 'Reason': 'not selected'})
+        summary_df = pd.DataFrame(summary_rows)
+
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Masked Data')
+            summary_df.to_excel(writer, index=False, sheet_name='DataRepli Summary')
+        output.seek(0)
+
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="masked_data.xlsx"'
         return response
 
     return HttpResponse("Invalid request method.")
+
 
 def contact_view(request):
     if request.method == 'POST':
@@ -124,8 +133,6 @@ def contact_view(request):
         user_message = request.POST.get('message')
         subject = f"New message from {name}"
         body = f"Name: {name}\nEmail: {user_email}\nMessage:\n{user_message}"
-
-        # FIX 4: update recipient to your real email
         try:
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                       ['daniilforsteam@gmail.com'], fail_silently=False)
@@ -133,6 +140,8 @@ def contact_view(request):
         except Exception as e:
             return HttpResponse(f"Error: {str(e)}")
     return redirect('home')
+
+
 # ── PII auto-detection ──────────────────────────────────────────
 
 PII_PATTERNS = {
@@ -215,8 +224,17 @@ def mask_file_api(request):
     except Exception as e:
         return Response({'error': f'Could not read file: {e}'}, status=400)
 
+    force_mask = request.data.get('force_mask', [])
+    never_mask = request.data.get('never_mask', [])
+
     if auto:
         rules = auto_detect_pii(df)
+
+    for col in force_mask:
+        if col in df.columns:
+            rules[col] = 'mask'
+    for col in never_mask:
+        rules.pop(col, None)
 
     mapping = {}
     masked_fields = list(rules.keys())
@@ -234,10 +252,8 @@ def mask_file_api(request):
         df.to_csv(output, index=False)
         mime = 'text/csv'
     else:
-        # build a summary of what was masked
-        all_cols = list(df.columns)
         summary_rows = []
-        for col in all_cols:
+        for col in df.columns:
             if col in masked_fields:
                 summary_rows.append({'Column': col, 'Status': 'MASKED', 'Reason': 'PII detected'})
             else:
