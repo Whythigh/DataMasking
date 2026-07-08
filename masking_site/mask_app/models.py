@@ -9,6 +9,7 @@ class ApiKey(models.Model):
     tier = models.CharField(max_length=20, default='free')
     active = models.BooleanField(default=True)
     rows_used_this_month = models.IntegerField(default=0)
+    stripe_customer_id = models.CharField(max_length=100, blank=True, default='')  # ← add this
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -22,3 +23,5 @@ class UsageLog(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
+
+
