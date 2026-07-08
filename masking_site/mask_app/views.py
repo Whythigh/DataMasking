@@ -293,22 +293,27 @@ def mask_file_api(request):
 def stripe_webhook(request):
     from .models import ApiKey
 
+    print("=== WEBHOOK CALLED ===")
+
     payload = request.body
     sig_header = request.headers.get('Stripe-Signature')
     webhook_secret = settings.STRIPE_WEBHOOK_SECRET
 
+    print(f"Secret configured: {webhook_secret[:10]}..." if webhook_secret else "NO SECRET SET")
+
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+        print(f"=== EVENT VERIFIED: {event['type']} ===")
     except Exception as e:
+        print(f"=== VERIFICATION FAILED: {e} ===")
         return HttpResponse(f"Webhook error: {e}", status=400)
 
-    # payment succeeded — create an API key
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         customer_email = session.get('customer_details', {}).get('email', 'unknown')
+        amount = session.get('amount_total', 0)
+        print(f"=== CHECKOUT: {customer_email}, amount {amount} ===")
 
-        # figure out which plan they bought by amount
-        amount = session.get('amount_total', 0)  # in cents
         if amount >= 29900:
             tier = 'business'
         elif amount >= 4900:
@@ -316,43 +321,20 @@ def stripe_webhook(request):
         else:
             tier = 'free'
 
-        # generate a real API key
         raw_key = 'dk_live_' + secrets.token_urlsafe(24)
         key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
 
-        ApiKey.objects.create(
-            name=f"{tier} subscription",
-            key_hash=key_hash,
-            email=customer_email,
-            tier=tier,
-            active=True,
-            stripe_customer_id=session.get('customer', '')
-        )
-
-        # email the key to the customer
         try:
-            send_mail(
-                subject="Your DataRepli API Key",
-                message=(
-                    f"Welcome to DataRepli {tier.title()}!\n\n"
-                    f"Your API key is:\n\n{raw_key}\n\n"
-                    f"Keep this safe — it's shown only once.\n\n"
-                    f"Use it in the Authorization header:\n"
-                    f"Authorization: Bearer {raw_key}\n\n"
-                    f"Docs: https://www.datarepli.com/api\n\n"
-                    f"— DataRepli"
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[customer_email],
-                fail_silently=False
+            ApiKey.objects.create(
+                name=f"{tier} subscription",
+                key_hash=key_hash,
+                email=customer_email,
+                tier=tier,
+                active=True,
+                stripe_customer_id=session.get('customer', '')
             )
+            print(f"=== KEY CREATED: {customer_email} / {tier} ===")
         except Exception as e:
-            print(f"Email failed: {e}")
-
-    # payment failed or subscription cancelled — deactivate key
-    elif event['type'] in ('invoice.payment_failed', 'customer.subscription.deleted'):
-        obj = event['data']['object']
-        customer_id = obj.get('customer', '')
-        ApiKey.objects.filter(stripe_customer_id=customer_id).update(active=False)
+            print(f"=== KEY CREATION FAILED: {e} ===")
 
     return HttpResponse(status=200)
