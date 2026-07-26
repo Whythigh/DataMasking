@@ -559,18 +559,7 @@
 </nav>
 
 <!-- HERO -->
-<section class="hero" id="home">
-  <div class="hero-left">
-    <div class="hero-eyebrow">GDPR · HIPAA · PCI DSS</div>
-    <h1>Your AI can't<br>touch <em>real</em> data.<br><strong>Now it doesn't have to.</strong></h1>
-    <p class="hero-sub">DataRepli replaces customer PII with structurally identical synthetic data — same formats, same distributions, zero compliance risk. Your AI models train correctly. Your compliance team sleeps.</p>
-    <div class="hero-actions">
-      <a href="#demo" class="btn-primary">TRY FREE →</a>
-      <a href="#api" class="btn-ghost">VIEW API DOCS</a>
-    </div>
-  </div>
-
-  <div class="hero-right">
+<div class="hero-right">
     <div class="terminal">
       <div class="terminal-bar">
         <span class="dot dot-r"></span>
@@ -583,25 +572,25 @@
           <div class="t-col">
             <span class="t-label t-label-before">PRODUCTION DATA</span><br>
             <span class="t-comment">// customer_0041</span><br>
-            <span class="t-key">name&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-red">"Anna Tamm"</span><br>
-            <span class="t-key">email&nbsp;&nbsp;&nbsp;</span> <span class="t-val-red">"anna@llh.ee"</span><br>
-            <span class="t-key">iban&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-red">"EE382200..."</span><br>
+            <span class="t-key">name&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-red">"Sarah Chen"</span><br>
+            <span class="t-key">email&nbsp;&nbsp;&nbsp;</span> <span class="t-val-red">"s.chen@acme.com"</span><br>
+            <span class="t-key">iban&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-red">"DE89370400..."</span><br>
             <span class="t-key">amount&nbsp;&nbsp;</span> <span class="t-val-red">1247.50</span><br>
             <span class="t-key">score&nbsp;&nbsp;&nbsp;</span> <span class="t-val-red">742</span>
           </div>
           <div class="t-col">
             <span class="t-label t-label-after">MASKED OUTPUT</span><br>
             <span class="t-comment">// same schema</span><br>
-            <span class="t-key">name&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-green">"Marta Kask"</span><br>
-            <span class="t-key">email&nbsp;&nbsp;&nbsp;</span> <span class="t-val-green">"m.kask@ex.net"</span><br>
-            <span class="t-key">iban&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-green">"EE387741..."</span><br>
+            <span class="t-key">name&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-green">"Julia Meyer"</span><br>
+            <span class="t-key">email&nbsp;&nbsp;&nbsp;</span> <span class="t-val-green">"j.meyer@ex.net"</span><br>
+            <span class="t-key">iban&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-green">"DE89370411..."</span><br>
             <span class="t-key">amount&nbsp;&nbsp;</span> <span class="t-val-green">1189.00</span><br>
             <span class="t-key">score&nbsp;&nbsp;&nbsp;</span> <span class="t-val-green">738</span>
           </div>
         </div>
         <hr class="t-divider">
         <span class="t-comment">// referential integrity preserved</span><br>
-        <span class="t-comment">// customer_0041 → "Marta Kask" in all tables</span><br>
+        <span class="t-comment">// customer_0041 → "Julia Meyer" in all tables</span><br>
         <span class="t-comment">// IBAN checksum valid · amount distribution realistic</span><br>
         <span style="color: var(--safe);">✓ 1,500 rows masked in 0.8s</span>
       </div>
@@ -613,12 +602,12 @@
 <div class="compliance-bar">
   <span class="compliance-label">Designed for</span>
   <div class="compliance-tags">
-    <span class="compliance-tag">GDPR Art. 25</span>
-    <span class="compliance-tag">HIPAA §164.514</span>
-    <span class="compliance-tag">PCI DSS 3.4</span>
-    <span class="compliance-tag">EU AI Act</span>
+    <span class="compliance-tag">GDPR</span>
+    <span class="compliance-tag">HIPAA</span>
+    <span class="compliance-tag">PCI DSS</span>
+    <span class="compliance-tag">CCPA</span>
     <span class="compliance-tag">ISO 27001</span>
-    <span class="compliance-tag">DORA</span>
+    <span class="compliance-tag">SOC 2</span>
   </div>
 </div>
 
@@ -668,32 +657,32 @@
       <tbody>
         <tr>
           <td class="field-name">Full name</td>
-          <td class="td-before">Anna Tamm</td>
-          <td class="td-after">Marta Kask</td>
+          <td class="td-before">Sarah Chen</td>
+          <td class="td-after">Julia Meyer</td>
           <td style="color:var(--ghost); font-size:12px;">Language, gender pattern</td>
         </tr>
         <tr>
           <td class="field-name">IBAN</td>
-          <td class="td-before">EE38 2200 1234 5678 9012</td>
-          <td class="td-after">EE38 7741 9823 4421 0012</td>
+          <td class="td-before">DE89 3704 0044 0532 0130</td>
+          <td class="td-after">DE89 3704 0044 0532 4419</td>
           <td style="color:var(--ghost); font-size:12px;">Country code, valid checksum</td>
         </tr>
         <tr>
           <td class="field-name">Email</td>
-          <td class="td-before">anna.tamm@seb.ee</td>
-          <td class="td-after">m.kask@mailsim.net</td>
+          <td class="td-before">sarah.chen@acme.com</td>
+          <td class="td-after">j.meyer@mailsim.net</td>
           <td style="color:var(--ghost); font-size:12px;">Valid format, domain structure</td>
         </tr>
         <tr>
           <td class="field-name">Phone</td>
-          <td class="td-before">+372 5123 4567</td>
-          <td class="td-after">+372 5987 6543</td>
+          <td class="td-before">+1 415 555 0142</td>
+          <td class="td-after">+1 415 555 0198</td>
           <td style="color:var(--ghost); font-size:12px;">Country prefix, digit count</td>
         </tr>
         <tr>
           <td class="field-name">Transaction amount</td>
-          <td class="td-before">€1,247.50</td>
-          <td class="td-after">€1,189.00</td>
+          <td class="td-before">$1,247.50</td>
+          <td class="td-after">$1,189.00</td>
           <td style="color:var(--ghost); font-size:12px;">Order of magnitude, currency</td>
         </tr>
         <tr>
@@ -710,7 +699,7 @@
         </tr>
         <tr>
           <td class="field-name">SSN / ID number</td>
-          <td class="td-before">38403150234</td>
+          <td class="td-before">123-45-6789</td>
           <td class="td-after">***</td>
           <td style="color:var(--ghost); font-size:12px;">Fully redacted</td>
         </tr>
