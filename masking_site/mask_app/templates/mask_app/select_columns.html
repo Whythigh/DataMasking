@@ -1,157 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Select Columns to Mask</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Select Columns to Mask — DataRepli</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
-      /* Reset default margins and set a clean font */
-      * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: "Arial", sans-serif;
-      }
-
-      /* Full-page flex container */
-      body {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          background: rgb(208,198,204);
-           background: linear-gradient(90deg, rgba(208,198,204,1) 1%, rgba(203,209,214,1) 100%);
-          padding: 1rem;
-      }
-
-      /* Card container */
-      .select-box {
-          background: #fff;
-          padding: 2rem;
-          border-radius: 12px;
-          box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-          text-align: center;
-          max-width: 450px;
-          width: 100%;
-      }
-
-      h1 {
-          color: #333;
-          margin-bottom: 1rem;
-      }
-
-      p {
-          color: #666;
-          font-size: 0.9rem;
-          margin-bottom: 1.5rem;
-          line-height: 1.4;
-      }
-
-      .select-all-row {
-          margin-bottom: 1.2rem;
-          text-align: left;
-      }
-
-      .column-row {
-          text-align: left;
-          background: #f9f9f9;
-          padding: 10px;
-          border-radius: 6px;
-          margin-bottom: 0.8rem;
-          display: flex;
-          flex-direction: column;
-      }
-
-      .column-row label {
-          font-weight: bold;
-          color: #333;
-      }
-
-      .approach-options {
-          margin-top: 5px;
-          padding-left: 20px;
-      }
-
-      /* Button styling */
-      button {
-          margin-top: 1.5rem;
-          padding: 0.75rem 1.5rem;
-          background: #2575fc;
-          color: #fff;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 1rem;
-          transition: background 0.3s ease;
-      }
-      button:hover {
-          background: #1b5fd9;
-      }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #0D1117; --ink-2: #1C2333; --rule: #1E2D45;
+      --muted: #4A5568; --ghost: #8A9BB0; --white: #FFFFFF;
+      --signal: #0057FF; --signal-dim: #003DB3; --safe: #00C98D;
+    }
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--ink); color: var(--white);
+      min-height: 100vh;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 60px 20px;
+      background-image:
+        radial-gradient(ellipse 50% 40% at 70% 20%, rgba(0,87,255,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0,201,141,0.05) 0%, transparent 60%);
+    }
+    .card {
+      background: var(--ink-2); border: 0.5px solid var(--rule);
+      border-radius: 14px; max-width: 560px; width: 100%; padding: 40px;
+    }
+    .logo {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; letter-spacing: 0.08em;
+      color: var(--white); text-align: center; margin-bottom: 24px;
+    }
+    .logo span { color: var(--signal); }
+    h1 {
+      font-size: 26px; font-weight: 300; letter-spacing: -0.02em;
+      text-align: center; margin-bottom: 20px;
+    }
+    h1 strong { font-weight: 600; }
+    .explainer {
+      background: var(--ink); border: 0.5px solid var(--rule);
+      border-radius: 8px; padding: 16px;
+      font-size: 13px; color: var(--ghost); line-height: 1.6; margin-bottom: 20px;
+    }
+    .explainer b { color: var(--white); font-weight: 500; }
+    .explainer .tag {
+      font-family: 'IBM Plex Mono', monospace; color: var(--safe); font-size: 12px;
+    }
+    .instruction {
+      font-size: 13px; color: var(--ghost); text-align: center; margin-bottom: 20px;
+    }
+    .select-all {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; margin-bottom: 16px;
+      background: rgba(0,87,255,0.08);
+      border: 0.5px solid rgba(0,87,255,0.3);
+      border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    .col-item {
+      background: var(--ink); border: 0.5px solid var(--rule);
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+      transition: border-color 0.15s;
+    }
+    .col-item:hover { border-color: var(--muted); }
+    .col-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .col-name {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; font-weight: 500; color: var(--white);
+    }
+    .approach-options {
+      display: flex; gap: 20px; padding-left: 26px;
+    }
+    .approach-options label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--ghost); cursor: pointer;
+    }
+    input[type="checkbox"], input[type="radio"] {
+      accent-color: var(--signal); width: 15px; height: 15px; cursor: pointer;
+    }
+    .btn-submit {
+      width: 100%; font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; letter-spacing: 0.06em;
+      background: var(--signal); color: var(--white);
+      border: none; border-radius: 8px; padding: 14px; margin-top: 20px;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-submit:hover { background: var(--signal-dim); }
   </style>
 </head>
 <body>
-  <div class="select-box">
-      <h1>Select Columns to Mask</h1>
-      <p>
-        <strong>Format Preserving Encryption (FPE)</strong> keeps the same length and format
-        of the original data, so it looks similar but is scrambled. <br>
-        <strong>XXX</strong> simply replaces the entire column with the literal string "XXX."
-      </p>
+  <div class="card">
+    <div class="logo">DATA<span>REPLI</span></div>
+    <h1>Select columns to <strong>mask</strong></h1>
 
-      <form method="post" action="{% url 'mask_columns' %}">
-          {% csrf_token %}
-          <p>Please check the columns you want to mask, and pick a masking approach for each:</p>
+    <div class="explainer">
+      <b>Format Preserving Encryption (FPE)</b> keeps the same length and format of the original data, so it looks similar but is scrambled.<br><br>
+      <span class="tag">XXX</span> replaces the entire column with the literal string "XXX."
+    </div>
 
-          <!-- "Select All" checkbox -->
-          <div class="select-all-row">
-              <label>
-                  <input type="checkbox" id="selectAll" onclick="toggleAllColumns(this)">
-                  Select All Columns (sets approach to FPE)
-              </label>
-          </div>
+    <form method="post" action="{% url 'mask_columns' %}">
+      {% csrf_token %}
 
-          <!-- Loop over each column choice manually -->
-          {% for value, label in form.fields.columns.choices %}
-            <div class="column-row">
-              <label>
-                <!-- By default, not checked -->
-                <input type="checkbox" name="columns" value="{{ value }}">
-                {{ label }}
-              </label>
-              <div class="approach-options">
-                <!-- Neither radio is checked by default -->
-                <label>
-                  <input type="radio" name="approach_{{ value }}" value="fpe">
-                  FPE
-                </label>
-                <label style="margin-left: 10px;">
-                  <input type="radio" name="approach_{{ value }}" value="xxx">
-                  XXX
-                </label>
-              </div>
-            </div>
-          {% endfor %}
+      <p class="instruction">Check the columns you want to mask, and pick an approach for each:</p>
 
-          <button type="submit">Apply Masking</button>
-      </form>
+      <label class="select-all">
+        <input type="checkbox" id="selectAll" onclick="toggleAllColumns(this)">
+        Select all columns (sets approach to FPE)
+      </label>
+
+      {% for value, label in form.fields.columns.choices %}
+      <div class="col-item">
+        <div class="col-header">
+          <input type="checkbox" name="columns" value="{{ value }}">
+          <span class="col-name">{{ label }}</span>
+        </div>
+        <div class="approach-options">
+          <label><input type="radio" name="approach_{{ value }}" value="fpe" checked> FPE</label>
+          <label><input type="radio" name="approach_{{ value }}" value="xxx"> XXX</label>
+        </div>
+      </div>
+      {% endfor %}
+
+      <button type="submit" class="btn-submit">APPLY MASKING →</button>
+    </form>
   </div>
 
   <script>
-    function toggleAllColumns(selectAllCheckbox) {
-      // Get all column checkboxes
+    function toggleAllColumns(source) {
       const columnCheckboxes = document.querySelectorAll('input[name="columns"]');
-
       columnCheckboxes.forEach(cb => {
-        // Check or uncheck each column
-        cb.checked = selectAllCheckbox.checked;
-
-        // If "Select All" is checked, set approach to FPE for each column
+        cb.checked = source.checked;
         const approachFpe = document.querySelector(`input[name="approach_${cb.value}"][value="fpe"]`);
         const approachXxx = document.querySelector(`input[name="approach_${cb.value}"][value="xxx"]`);
-        if (selectAllCheckbox.checked) {
-          // FPE is selected
+        if (source.checked) {
           if (approachFpe) approachFpe.checked = true;
         } else {
-          // Clear any approach
           if (approachFpe) approachFpe.checked = false;
           if (approachXxx) approachXxx.checked = false;
         }
