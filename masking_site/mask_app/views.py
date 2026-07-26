@@ -296,7 +296,7 @@ def stripe_webhook(request):
     print("=== WEBHOOK CALLED ===")
 
     payload = request.body
-    sig_header = request.headers.get('Stripe-Signature')
+    sig_header = request.headers.get('Stripe-Signature') or request.META.get('HTTP_STRIPE_SIGNATURE')
     webhook_secret = settings.STRIPE_WEBHOOK_SECRET
 
     print(f"Secret configured: {webhook_secret[:10]}..." if webhook_secret else "NO SECRET SET")
