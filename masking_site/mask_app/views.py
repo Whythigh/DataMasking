@@ -146,6 +146,35 @@ def contact_view(request):
     return redirect('home')
 
 
+def success(request):
+    from .models import ApiKey
+    session_id = request.GET.get('session_id')
+
+    api_key = None
+    tier = None
+    email = None
+
+    if session_id:
+        try:
+            session = stripe.checkout.Session.retrieve(session_id)
+            customer_id = session.get('customer')
+            key_record = ApiKey.objects.filter(
+                stripe_customer_id=customer_id
+            ).order_by('-created_at').first()
+            if key_record:
+                api_key = key_record.raw_key_temp
+                tier = key_record.tier
+                email = key_record.email
+        except Exception as e:
+            print(f"Success page error: {e}")
+
+    return render(request, 'success.html', {
+        'api_key': api_key,
+        'tier': tier,
+        'email': email,
+    })
+
+
 # ── PII auto-detection ──────────────────────────────────────────
 
 PII_PATTERNS = {
@@ -212,10 +241,10 @@ def mask_file_api(request):
 
     # ── Tier enforcement ──
     TIER_LIMITS = {
-        'free':       0,           # free = no API access
+        'free':       0,
         'pro':        500_000,
         'business':   5_000_000,
-        'enterprise': None,        # unlimited
+        'enterprise': None,
     }
     tier = key_record.tier
     limit = TIER_LIMITS.get(tier, 0)
@@ -353,7 +382,8 @@ def stripe_webhook(request):
                 email=customer_email,
                 tier=tier,
                 active=True,
-                stripe_customer_id=session.get('customer', '')
+                stripe_customer_id=session.get('customer', ''),
+                raw_key_temp=raw_key
             )
         except Exception as e:
             print(f"KEY CREATION FAILED: {e}")
@@ -364,7 +394,7 @@ def stripe_webhook(request):
                 message=(
                     f"Welcome to DataRepli {tier.title()}!\n\n"
                     f"Your API key is:\n\n{raw_key}\n\n"
-                    f"Keep this safe — it's shown only once.\n\n"
+                    f"Keep this safe.\n\n"
                     f"Use it in the Authorization header:\n"
                     f"Authorization: Bearer {raw_key}\n\n"
                     f"— DataRepli"

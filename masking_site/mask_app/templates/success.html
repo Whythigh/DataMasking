@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to DataRepli</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #0D1117; --ink-2: #1C2333; --rule: #1E2D45;
+      --muted: #4A5568; --ghost: #8A9BB0; --white: #FFFFFF;
+      --signal: #0057FF; --signal-dim: #003DB3; --safe: #00C98D;
+    }
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--ink); color: var(--white);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px 20px;
+      background-image:
+        radial-gradient(ellipse 50% 40% at 70% 20%, rgba(0,201,141,0.10) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0,87,255,0.06) 0%, transparent 60%);
+    }
+    .card {
+      background: var(--ink-2); border: 0.5px solid var(--rule);
+      border-radius: 16px; max-width: 560px; width: 100%; padding: 48px 40px;
+      text-align: center;
+    }
+    .check {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(0,201,141,0.15); color: var(--safe);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px; font-size: 28px;
+    }
+    .logo {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px; letter-spacing: 0.1em; color: var(--ghost);
+      margin-bottom: 12px;
+    }
+    .logo span { color: var(--signal); }
+    h1 { font-size: 28px; font-weight: 300; margin-bottom: 8px; }
+    h1 strong { font-weight: 600; }
+    .subtitle { font-size: 15px; color: var(--ghost); margin-bottom: 32px; }
+    .tier-badge {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; letter-spacing: 0.08em;
+      background: rgba(0,87,255,0.15); color: var(--signal);
+      padding: 4px 12px; border-radius: 6px; margin-bottom: 28px;
+      text-transform: uppercase;
+    }
+    .key-label {
+      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--ghost); margin-bottom: 10px; text-align: left;
+    }
+    .key-box {
+      background: var(--ink); border: 0.5px solid var(--rule);
+      border-radius: 8px; padding: 16px;
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .key-value {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; color: var(--safe);
+      word-break: break-all; flex: 1; text-align: left;
+    }
+    .copy-btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; color: var(--white);
+      background: var(--signal); border: none;
+      padding: 8px 14px; border-radius: 6px; cursor: pointer;
+      flex-shrink: 0; transition: background 0.15s;
+    }
+    .copy-btn:hover { background: var(--signal-dim); }
+    .warning {
+      font-size: 12px; color: var(--ghost);
+      text-align: left; margin-bottom: 28px;
+      display: flex; gap: 8px; align-items: flex-start;
+    }
+    .warning-icon { color: #FDB022; flex-shrink: 0; }
+    .next-steps {
+      background: var(--ink); border: 0.5px solid var(--rule);
+      border-radius: 8px; padding: 20px; text-align: left; margin-bottom: 24px;
+    }
+    .next-steps h3 {
+      font-size: 13px; font-weight: 500; margin-bottom: 12px;
+    }
+    .next-steps code {
+      display: block; background: #0A0F1A; border-radius: 6px;
+      padding: 12px; font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; color: #CBD5E1; margin-top: 8px;
+      overflow-x: auto; white-space: pre;
+    }
+    .btn-home {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px; letter-spacing: 0.06em;
+      color: var(--ghost); text-decoration: none;
+      border: 0.5px solid var(--rule); padding: 12px 28px;
+      border-radius: 8px; transition: all 0.15s;
+    }
+    .btn-home:hover { color: var(--white); border-color: var(--muted); }
+    .error-msg {
+      font-size: 14px; color: var(--ghost); line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="check">✓</div>
+    <div class="logo">DATA<span>REPLI</span></div>
+
+    {% if api_key %}
+      <h1>You're <strong>all set</strong></h1>
+      <p class="subtitle">Your subscription is active. Here's your API key.</p>
+      <div class="tier-badge">{{ tier }} plan</div>
+
+      <div class="key-label">Your API key</div>
+      <div class="key-box">
+        <span class="key-value" id="apikey">{{ api_key }}</span>
+        <button class="copy-btn" onclick="copyKey()">COPY</button>
+      </div>
+      <div class="warning">
+        <span class="warning-icon">⚠</span>
+        <span>Save this key now — for security, this is the only time it's shown in full. Store it somewhere safe.</span>
+      </div>
+
+      <div class="next-steps">
+        <h3>Use it in your requests</h3>
+        <code>Authorization: Bearer {{ api_key }}</code>
+      </div>
+
+      <a href="/" class="btn-home">← BACK TO HOME</a>
+    {% else %}
+      <h1>Payment <strong>received</strong></h1>
+      <p class="error-msg">
+        Thanks for subscribing! We're setting up your API key.
+        If you don't see it here, please check your email —
+        or contact <span style="color:var(--signal)">hello@datarepli.com</span>
+        and we'll send your key right away.
+      </p>
+      <br>
+      <a href="/" class="btn-home">← BACK TO HOME</a>
+    {% endif %}
+  </div>
+
+  <script>
+    function copyKey() {
+      const key = document.getElementById('apikey').textContent;
+      navigator.clipboard.writeText(key);
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = 'COPIED';
+      setTimeout(() => btn.textContent = 'COPY', 1500);
+    }
+  </script>
+</body>
+</html>
