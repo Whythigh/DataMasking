@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from .forms import UploadFileForm, ColumnSelectForm
 import pandas as pd
 import random
@@ -10,14 +11,14 @@ import io
 import base64
 import re
 import hashlib
+import secrets
+import stripe
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-import secrets
-import json
-from django.views.decorators.csrf import csrf_exempt
-import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
 # ── Core masking function ───────────────────────────────────────
 
 def mask_value(value, mapping):
@@ -105,7 +106,6 @@ def mask_columns(request):
         except Exception as e:
             return HttpResponse(f"Error during masking: {e}")
 
-        # build summary
         summary_rows = []
         for col in df.columns:
             if col in selected_columns:
@@ -210,6 +210,22 @@ def mask_file_api(request):
     except ApiKey.DoesNotExist:
         return Response({'error': 'Invalid API key'}, status=401)
 
+    # ── Tier enforcement ──
+    TIER_LIMITS = {
+        'free':       0,           # free = no API access
+        'pro':        500_000,
+        'business':   5_000_000,
+        'enterprise': None,        # unlimited
+    }
+    tier = key_record.tier
+    limit = TIER_LIMITS.get(tier, 0)
+
+    if limit == 0:
+        return Response({
+            'error': 'API access requires a paid plan',
+            'upgrade_url': 'https://www.datarepli.com/#pricing'
+        }, status=403)
+
     file_b64  = request.data.get('file_base64')
     file_type = request.data.get('file_type', 'xlsx').lower()
     auto      = request.data.get('auto_detect', True)
@@ -227,6 +243,15 @@ def mask_file_api(request):
             df = pd.read_excel(file_obj)
     except Exception as e:
         return Response({'error': f'Could not read file: {e}'}, status=400)
+
+    # ── Row limit check ──
+    if limit is not None and (key_record.rows_used_this_month + len(df)) > limit:
+        return Response({
+            'error': f'Monthly row limit exceeded for {tier} tier',
+            'limit': limit,
+            'used': key_record.rows_used_this_month,
+            'upgrade_url': 'https://www.datarepli.com/#pricing'
+        }, status=429)
 
     force_mask = request.data.get('force_mask', [])
     never_mask = request.data.get('never_mask', [])
@@ -272,6 +297,9 @@ def mask_file_api(request):
     output.seek(0)
     encoded = base64.b64encode(output.read()).decode('utf-8')
 
+    key_record.rows_used_this_month += len(df)
+    key_record.save()
+
     UsageLog.objects.create(
         api_key=key_record,
         rows_processed=len(df),
@@ -287,32 +315,26 @@ def mask_file_api(request):
         'file_base64':    encoded,
     })
 
-# ── Stripe webhook — generate API key on payment ────────────────
+
+# ── Stripe webhook ──────────────────────────────────────────────
 
 @csrf_exempt
 def stripe_webhook(request):
     from .models import ApiKey
 
-    print("=== WEBHOOK CALLED ===")
-
     payload = request.body
     sig_header = request.headers.get('Stripe-Signature') or request.META.get('HTTP_STRIPE_SIGNATURE')
     webhook_secret = settings.STRIPE_WEBHOOK_SECRET
 
-    print(f"Secret configured: {webhook_secret[:10]}..." if webhook_secret else "NO SECRET SET")
-
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
-        print(f"=== EVENT VERIFIED: {event['type']} ===")
     except Exception as e:
-        print(f"=== VERIFICATION FAILED: {e} ===")
         return HttpResponse(f"Webhook error: {e}", status=400)
 
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         customer_email = session.get('customer_details', {}).get('email', 'unknown')
         amount = session.get('amount_total', 0)
-        print(f"=== CHECKOUT: {customer_email}, amount {amount} ===")
 
         if amount >= 29900:
             tier = 'business'
@@ -333,8 +355,30 @@ def stripe_webhook(request):
                 active=True,
                 stripe_customer_id=session.get('customer', '')
             )
-            print(f"=== KEY CREATED: {customer_email} / {tier} ===")
         except Exception as e:
-            print(f"=== KEY CREATION FAILED: {e} ===")
+            print(f"KEY CREATION FAILED: {e}")
+
+        try:
+            send_mail(
+                subject="Your DataRepli API Key",
+                message=(
+                    f"Welcome to DataRepli {tier.title()}!\n\n"
+                    f"Your API key is:\n\n{raw_key}\n\n"
+                    f"Keep this safe — it's shown only once.\n\n"
+                    f"Use it in the Authorization header:\n"
+                    f"Authorization: Bearer {raw_key}\n\n"
+                    f"— DataRepli"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[customer_email],
+                fail_silently=True
+            )
+        except Exception as e:
+            print(f"Email failed: {e}")
+
+    elif event['type'] in ('invoice.payment_failed', 'customer.subscription.deleted'):
+        obj = event['data']['object']
+        customer_id = obj.get('customer', '')
+        ApiKey.objects.filter(stripe_customer_id=customer_id).update(active=False)
 
     return HttpResponse(status=200)
