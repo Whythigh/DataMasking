@@ -179,19 +179,29 @@ def success(request):
 
 PII_PATTERNS = {
     'name':    ['name', 'nimi', 'namn', 'first_name', 'last_name',
-                'full_name', 'firstname', 'lastname', 'eesnimi', 'perenimi',
-                'forename', 'surname'],
-    'email':   ['email', 'e-mail', 'meil', 'epost', 'sahkoposti'],
-    'phone':   ['phone', 'tel', 'mobile', 'telefon', 'puhelin',
-                'mobil', 'gsm', 'cell'],
-    'iban':    ['iban', 'account', 'konto', 'kontonummer', 'tili',
-                'bank_account', 'account_number'],
-    'ssn':     ['ssn', 'isikukood', 'personal_code', 'id_number',
-                'henkilotunnus', 'personnummer', 'national_id'],
-    'address': ['address', 'aadress', 'adress', 'street', 'city',
-                'osoite', 'postinumero', 'zipcode', 'postal'],
-    'dob':     ['dob', 'birth', 'syntyma', 'birthday',
-                'date_of_birth', 'birthdate'],
+                'full_name', 'firstname', 'lastname', 'forename', 'surname',
+                'approved_by', 'created_by', 'requested_by', 'signed_by',
+                'owner', 'contact', 'manager', 'employee', 'signatory',
+                'customer', 'client', 'person', 'recipient', 'sender'],
+
+    'email':   ['email', 'e-mail', 'mail_address', 'epost', 'courriel'],
+
+    'phone':   ['phone', 'tel', 'telephone', 'mobile', 'telefon',
+                'gsm', 'cell', 'fax'],
+
+    # removed bare 'account' / 'konto' — they collide with accounting terms
+    'iban':    ['iban', 'bank_account', 'account_number', 'accountno',
+                'acct_no', 'kontonummer', 'bankkonto', 'swift', 'bic',
+                'card_number', 'creditcard'],
+
+    'ssn':     ['ssn', 'social_security', 'personal_code', 'id_number',
+                'national_id', 'personnummer', 'tax_id', 'taxid',
+                'vat_id', 'vatno', 'tin', 'nino', 'passport'],
+
+    'address': ['address', 'street', 'city', 'postcode', 'zipcode',
+                'postal_code', 'zip', 'adresse', 'residence'],
+
+    'dob':     ['dob', 'birth', 'birthday', 'date_of_birth', 'birthdate'],
 }
 
 def scan_values_for_pii(series):
