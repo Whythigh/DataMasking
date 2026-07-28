@@ -258,23 +258,56 @@ def mask_file_api(request):
     file_b64  = request.data.get('file_base64')
     file_type = request.data.get('file_type', 'xlsx').lower()
     auto      = request.data.get('auto_detect', True)
-    rules     = request.data.get('rules', {})
 
     if not file_b64:
         return Response({'error': 'No file_base64 provided'}, status=400)
 
+    # ── Read ALL sheets ──
     try:
         file_bytes = base64.b64decode(file_b64)
-        file_obj   = io.BytesIO(file_bytes)
+        file_obj = io.BytesIO(file_bytes)
         if file_type == 'csv':
-            df = pd.read_csv(file_obj)
+            sheets = {'Sheet1': pd.read_csv(file_obj)}
         else:
-            df = pd.read_excel(file_obj)
+            sheets = pd.read_excel(file_obj, sheet_name=None)
     except Exception as e:
         return Response({'error': f'Could not read file: {e}'}, status=400)
 
-    # ── Row limit check ──
-    if limit is not None and (key_record.rows_used_this_month + len(df)) > limit:
+    force_mask = request.data.get('force_mask', [])
+    never_mask = request.data.get('never_mask', [])
+
+    # shared mapping across ALL sheets = referential integrity
+    mapping = {}
+    total_rows = 0
+    all_masked_fields = {}
+
+    # ── Mask every sheet ──
+    for sheet_name, df in sheets.items():
+        if auto:
+            rules = auto_detect_pii(df)
+        else:
+            rules = dict(request.data.get('rules', {}))
+
+        for col in force_mask:
+            if col in df.columns:
+                rules[col] = 'mask'
+        for col in never_mask:
+            rules.pop(col, None)
+
+        for col, strategy in rules.items():
+            if col not in df.columns:
+                continue
+            if strategy == 'redact':
+                df[col] = '***'
+            elif strategy == 'mask':
+                df[col] = df[col].apply(lambda v: mask_value(v, mapping))
+
+        sheets[sheet_name] = df
+        all_masked_fields[sheet_name] = list(rules.keys())
+        total_rows += len(df)
+
+    # ── Row limit check (total across all sheets) ──
+    if limit is not None and (key_record.rows_used_this_month + total_rows) > limit:
         return Response({
             'error': f'Monthly row limit exceeded for {tier} tier',
             'limit': limit,
@@ -282,68 +315,52 @@ def mask_file_api(request):
             'upgrade_url': 'https://www.datarepli.com/#pricing'
         }, status=429)
 
-    force_mask = request.data.get('force_mask', [])
-    never_mask = request.data.get('never_mask', [])
-
-    if auto:
-        rules = auto_detect_pii(df)
-
-    for col in force_mask:
-        if col in df.columns:
-            rules[col] = 'mask'
-    for col in never_mask:
-        rules.pop(col, None)
-
-    mapping = {}
-    masked_fields = list(rules.keys())
-
-    for col, strategy in rules.items():
-        if col not in df.columns:
-            continue
-        if strategy == 'redact':
-            df[col] = '***'
-        elif strategy == 'mask':
-            df[col] = df[col].apply(lambda v: mask_value(v, mapping))
-
+    # ── Write output ──
     output = io.BytesIO()
     if file_type == 'csv':
-        df.to_csv(output, index=False)
+        list(sheets.values())[0].to_csv(output, index=False)
         mime = 'text/csv'
     else:
-        summary_rows = []
-        for col in df.columns:
-            if col in masked_fields:
-                summary_rows.append({'Column': col, 'Status': 'MASKED', 'Reason': 'PII detected'})
-            else:
-                summary_rows.append({'Column': col, 'Status': 'unchanged', 'Reason': 'no PII detected'})
-        summary_df = pd.DataFrame(summary_rows)
-
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name='Masked Data')
-            summary_df.to_excel(writer, index=False, sheet_name='DataRepli Summary')
+            for sheet_name, df in sheets.items():
+                df.to_excel(writer, index=False, sheet_name=str(sheet_name)[:31])
+
+            summary_rows = []
+            for sheet_name, fields in all_masked_fields.items():
+                for col in sheets[sheet_name].columns:
+                    summary_rows.append({
+                        'Sheet':  sheet_name,
+                        'Column': col,
+                        'Status': 'MASKED' if col in fields else 'unchanged',
+                        'Reason': 'PII detected' if col in fields else 'no PII detected'
+                    })
+            pd.DataFrame(summary_rows).to_excel(
+                writer, index=False, sheet_name='DataRepli Summary')
         mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
     output.seek(0)
     encoded = base64.b64encode(output.read()).decode('utf-8')
 
-    key_record.rows_used_this_month += len(df)
+    # ── Update usage ──
+    key_record.rows_used_this_month += total_rows
     key_record.save()
 
+    flat_fields = sorted({c for fields in all_masked_fields.values() for c in fields})
     UsageLog.objects.create(
         api_key=key_record,
-        rows_processed=len(df),
-        fields_masked=masked_fields
+        rows_processed=total_rows,
+        fields_masked=flat_fields
     )
 
     return Response({
-        'status':         'done',
-        'rows_processed': len(df),
-        'fields_masked':  masked_fields,
-        'file_type':      file_type,
-        'mime_type':      mime,
-        'file_base64':    encoded,
+        'status':          'done',
+        'sheets_processed': len(sheets),
+        'rows_processed':  total_rows,
+        'fields_masked':   all_masked_fields,
+        'file_type':       file_type,
+        'mime_type':       mime,
+        'file_base64':     encoded,
     })
-
 
 # ── Stripe webhook ──────────────────────────────────────────────
 
