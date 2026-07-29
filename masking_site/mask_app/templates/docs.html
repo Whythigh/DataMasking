@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>API Documentation · DataRepli</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:#f8fafc; color:#0b1a33; line-height:1.5; }
+.container { max-width:1280px; margin:0 auto; padding:0 32px; }
+code, pre { font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; }
+
+/* NAV */
+nav { display:flex; justify-content:space-between; align-items:center; padding:20px 0; border-bottom:1px solid rgba(0,0,0,.04); }
+.logo { font-size:24px; font-weight:700; letter-spacing:-.5px; color:#0b1a33; text-decoration:none; }
+.logo span { color:#2563eb; }
+.nav-links { display:flex; align-items:center; gap:32px; list-style:none; font-weight:500; font-size:15px; }
+.nav-links a { text-decoration:none; color:#334155; transition:color .2s; }
+.nav-links a:hover { color:#2563eb; }
+.btn-primary {
+  background:#2563eb; border:none; padding:10px 28px; border-radius:40px;
+  font-weight:600; font-size:14px; color:#fff; cursor:pointer;
+  transition:all .2s; box-shadow:0 4px 12px rgba(37,99,235,.25);
+  text-decoration:none; display:inline-block; font-family:'Inter',sans-serif;
+}
+.btn-primary:hover { background:#1d4ed8; transform:translateY(-2px); }
+
+/* LAYOUT */
+.docs-layout { display:grid; grid-template-columns:220px 1fr; gap:56px; padding:48px 0 80px; align-items:start; }
+.sidebar { position:sticky; top:32px; }
+.sidebar h5 {
+  font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.5px;
+  color:#94a3b8; margin-bottom:12px;
+}
+.sidebar ul { list-style:none; margin-bottom:28px; }
+.sidebar li a {
+  display:block; padding:6px 0; font-size:14px; color:#475569;
+  text-decoration:none; transition:color .15s;
+}
+.sidebar li a:hover { color:#2563eb; }
+
+/* CONTENT */
+.docs-content { min-width:0; }
+.docs-content h1 { font-size:38px; font-weight:700; letter-spacing:-1px; margin-bottom:10px; }
+.docs-content > p.intro { font-size:18px; color:#64748b; margin-bottom:40px; max-width:680px; }
+.docs-content h2 {
+  font-size:24px; font-weight:700; letter-spacing:-.4px;
+  margin:48px 0 14px; padding-top:8px; scroll-margin-top:24px;
+}
+.docs-content h3 { font-size:17px; font-weight:600; margin:28px 0 10px; }
+.docs-content p { font-size:15px; color:#475569; margin-bottom:14px; max-width:720px; }
+.docs-content p code, .docs-content li code, td code {
+  background:#eef2f7; padding:2px 6px; border-radius:5px;
+  font-size:13px; color:#1e293b;
+}
+.docs-content ul.plain { list-style:none; margin:0 0 16px; }
+.docs-content ul.plain li {
+  font-size:15px; color:#475569; padding:5px 0 5px 22px; position:relative; max-width:720px;
+}
+.docs-content ul.plain li:before {
+  content:'\f105'; font-family:'Font Awesome 6 Free'; font-weight:900;
+  position:absolute; left:6px; color:#94a3b8;
+}
+
+/* CODE BLOCKS */
+.code-card { background:#0f172a; border-radius:14px; overflow:hidden; margin:16px 0 24px; }
+.code-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 16px; background:#1e293b; border-bottom:1px solid #334155;
+}
+.code-lang { font-size:12px; color:#94a3b8; letter-spacing:.4px; font-family:'Inter',sans-serif; }
+.copy-btn {
+  background:#334155; border:none; color:#cbd5e1; font-size:11px;
+  padding:5px 12px; border-radius:6px; cursor:pointer; font-family:'Inter',sans-serif;
+}
+.copy-btn:hover { background:#475569; color:#fff; }
+.code-card pre { padding:18px 20px; overflow-x:auto; font-size:13px; line-height:1.75; color:#e2e8f0; }
+.c-key { color:#7dd3fc; }
+.c-str { color:#86efac; }
+.c-com { color:#64748b; }
+.c-num { color:#fcd34d; }
+.c-kw  { color:#c4b5fd; }
+
+/* ENDPOINT BADGE */
+.endpoint-bar {
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  background:#fff; border:1px solid #e9edf2; border-radius:12px;
+  padding:14px 18px; margin:16px 0 8px;
+}
+.method-badge {
+  background:#059669; color:#fff; font-size:12px; font-weight:700;
+  padding:4px 11px; border-radius:6px; letter-spacing:.4px;
+}
+.endpoint-url { font-size:14px; color:#0b1a33; font-weight:500; }
+
+/* TABLES */
+.table-wrap { overflow-x:auto; border:1px solid #e9edf2; border-radius:12px; margin:16px 0 24px; }
+table { width:100%; border-collapse:collapse; font-size:14px; min-width:560px; background:#fff; }
+thead th {
+  background:#f1f5f9; padding:12px 16px; text-align:left;
+  font-size:12px; font-weight:600; text-transform:uppercase;
+  letter-spacing:.4px; color:#64748b;
+}
+td { padding:12px 16px; border-top:1px solid #e9edf2; color:#475569; vertical-align:top; }
+td.name { font-family:ui-monospace,Menlo,monospace; font-size:13px; color:#1e293b; font-weight:500; white-space:nowrap; }
+td.type { color:#94a3b8; font-size:13px; white-space:nowrap; }
+.req { color:#dc2626; font-size:11px; font-weight:600; margin-left:4px; }
+.status-code { font-family:ui-monospace,Menlo,monospace; font-weight:600; }
+.s-ok { color:#059669; } .s-err { color:#dc2626; } .s-warn { color:#d97706; }
+
+/* CALLOUT */
+.callout {
+  background:#eff6ff; border-left:3px solid #2563eb;
+  padding:16px 20px; border-radius:0 10px 10px 0; margin:20px 0; max-width:720px;
+}
+.callout p { margin:0; font-size:14.5px; color:#1e40af; }
+.callout.warn { background:#fffbeb; border-left-color:#d97706; }
+.callout.warn p { color:#92400e; }
+
+/* FOOTER */
+footer { padding:36px 0; border-top:1px solid #e9edf2; background:#fff; }
+.footer-inner { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+.footer-note { font-size:13px; color:#94a3b8; }
+.footer-links { display:flex; gap:22px; list-style:none; }
+.footer-links a { font-size:14px; color:#64748b; text-decoration:none; }
+.footer-links a:hover { color:#2563eb; }
+
+@media (max-width:900px){
+  .docs-layout { grid-template-columns:1fr; gap:0; }
+  .sidebar { display:none; }
+  .nav-links { display:none; }
+  .container { padding:0 20px; }
+  .docs-content h1 { font-size:30px; }
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav>
+    <a href="/" class="logo">Data<span>Repli</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/#how">How it works</a></li>
+      <li><a href="/#pricing">Pricing</a></li>
+      <li><a href="/docs">API</a></li>
+    </ul>
+    <a href="/#pricing" class="btn-primary">Get an API key</a>
+  </nav>
+</div>
+
+<div class="container">
+  <div class="docs-layout">
+
+    <aside class="sidebar">
+      <h5>Getting started</h5>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#auth">Authentication</a></li>
+        <li><a href="#quickstart">Quickstart</a></li>
+      </ul>
+      <h5>Reference</h5>
+      <ul>
+        <li><a href="#endpoint">Mask a file</a></li>
+        <li><a href="#params">Parameters</a></li>
+        <li><a href="#response">Response</a></li>
+        <li><a href="#errors">Errors &amp; limits</a></li>
+      </ul>
+      <h5>Guides</h5>
+      <ul>
+        <li><a href="#detection">How detection works</a></li>
+        <li><a href="#overrides">Controlling columns</a></li>
+        <li><a href="#sheets">Multi-sheet files</a></li>
+      </ul>
+    </aside>
+
+    <main class="docs-content">
+      <h1>API documentation</h1>
+      <p class="intro">
+        One endpoint. Send a file, get it back with personal data masked.
+        Everything below works with the API key issued when you subscribe.
+      </p>
+
+      <!-- OVERVIEW -->
+      <h2 id="overview">Overview</h2>
+      <p>
+        The DataRepli API takes a spreadsheet, finds the columns containing personal
+        data, replaces those values with realistic substitutes, and returns the file.
+        Amounts, dates, codes and other non-identifying fields are left untouched.
+      </p>
+      <ul class="plain">
+        <li>Accepts <code>.xlsx</code>, <code>.xls</code> and <code>.csv</code> files</li>
+        <li>Detects personal data automatically — no configuration needed</li>
+        <li>Processes every sheet in a workbook in a single call</li>
+        <li>The same original value maps to the same replacement across all sheets</li>
+        <li>Files are processed in memory and never stored</li>
+      </ul>
+
+      <div class="callout">
+        <p><strong>Base URL</strong> — all requests go to <code style="background:#dbeafe">https://www.datarepli.com</code></p>
+      </div>
+
+      <!-- AUTH -->
+      <h2 id="auth">Authentication</h2>
+      <p>
+        Every request needs your API key in the <code>Authorization</code> header, using the
+        <code>Bearer</code> scheme. Your key is shown once, on the page right after you subscribe.
+      </p>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-lang">HTTP header</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><span class="c-key">Authorization</span>: Bearer dk_live_your_key_here</pre>
+      </div>
+
+      <div class="callout warn">
+        <p>
+          <strong>Keep your key private.</strong> Store it as an environment variable rather than
+          writing it into code that gets committed or shared. Anyone with the key can use
+          your quota.
+        </p>
+      </div>
+
+      <p>
+        API access requires a paid plan. Keys on the free tier will receive a
+        <code>403</code> response — the free tier covers the web tool only.
+      </p>
+
+      <!-- QUICKSTART -->
+      <h2 id="quickstart">Quickstart</h2>
+      <p>
+        A complete working example. This reads a local Excel file, sends it for masking,
+        and writes the masked version back to disk.
+      </p>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-lang">Python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre><span class="c-kw">import</span> base64, requests
+
+API_KEY = <span class="c-str">"dk_live_your_key_here"</span>
+
+<span class="c-com"># 1. read the file and encode it</span>
+<span class="c-kw">with</span> open(<span class="c-str">"customers.xlsx"</span>, <span class="c-str">"rb"</span>) <span class="c-kw">as</span> f:
+    encoded = base64.b64encode(f.read()).decode()
+
+<span class="c-com"># 2. send it for masking</span>
+response = requests.post(
+    <span class="c-str">"https://www.datarepli.com/api/v1/mask-file"</span>,
+    headers={<span class="c-str">"Authorization"</span>: <span class="c-str">f"Bearer {API_KEY}"</span>},
+    json={
+        <span class="c-str">"file_base64"</span>: encoded,
+        <span class="c-str">"file_type"</span>:   <span class="c-str">"xlsx"</span>,
+        <span class="c-str">"auto_detect"</span>: <span class="c-kw">True</span>
+    }
+)
+result = response.json()
+
+<span class="c-com"># 3. write the masked file back to disk</span>
+<span class="c-kw">with</span> open(<span class="c-str">"customers_masked.xlsx"</span>, <span class="c-str">"wb"</span>) <span class="c-kw">as</span> f:
+    f.write(base64.b64decode(result[<span class="c-str">"file_base64"</span>]))
+
+print(<span class="c-str">"Rows masked:"</span>, result[<span class="c-str">"rows_processed"</span>])
+print(<span class="c-str">"Columns changed:"</span>, result[<span class="c-str">"fields_masked"</span>])</pre>
+      </div>
+
+      <h3>Same request with curl</h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-lang">bash</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre><span class="c-com"># encode the file, then post it</span>
+FILE=$(base64 -w 0 customers.xlsx)
+
+curl -X POST https://www.datarepli.com/api/v1/mask-file \
+  -H <span class="c-str">"Authorization: Bearer dk_live_your_key_here"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">"{\"file_base64\":\"$FILE\",\"file_type\":\"xlsx\",\"auto_detect\":true}"</span></pre>
+      </div>
+
+      <!-- ENDPOINT -->
+      <h2 id="endpoint">Mask a file</h2>
+      <div class="endpoint-bar">
+        <span class="method-badge">POST</span>
+        <span class="endpoint-url">https://www.datarepli.com/api/v1/mask-file</span>
+      </div>
+      <p>
+        Send a base64-encoded file as JSON. The response contains the masked file,
+        also base64-encoded, plus a record of what was changed.
+      </p>
+
+      <!-- PARAMS -->
+      <h2 id="params">Request parameters</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="name">file_base64<span class="req">required</span></td>
+              <td class="type">string</td>
+              <td>The file contents, base64-encoded.</td>
+            </tr>
+            <tr>
+              <td class="name">file_type</td>
+              <td class="type">string</td>
+              <td>Either <code>xlsx</code> or <code>csv</code>. Defaults to <code>xlsx</code>.</td>
+            </tr>
+            <tr>
+              <td class="name">auto_detect</td>
+              <td class="type">boolean</td>
+              <td>Find personal data automatically. Defaults to <code>true</code>. Set to <code>false</code> to control masking entirely with <code>rules</code>.</td>
+            </tr>
+            <tr>
+              <td class="name">force_mask</td>
+              <td class="type">array</td>
+              <td>Column names to always mask, even if detection didn't flag them.</td>
+            </tr>
+            <tr>
+              <td class="name">never_mask</td>
+              <td class="type">array</td>
+              <td>Column names to always leave untouched, even if detection flagged them.</td>
+            </tr>
+            <tr>
+              <td class="name">rules</td>
+              <td class="type">object</td>
+              <td>Explicit per-column instructions, e.g. <code>{"Email": "mask", "SSN": "redact"}</code>. Used when <code>auto_detect</code> is <code>false</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Masking strategies</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Value</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr><td class="name">mask</td><td>Replaces the value with a realistic substitute of the same shape.</td></tr>
+            <tr><td class="name">redact</td><td>Replaces the entire column with <code>***</code>. Use for values that shouldn't survive in any form.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- RESPONSE -->
+      <h2 id="response">Response</h2>
+      <div class="code-card">
+        <div class="code-head"><span class="code-lang">JSON — 200 OK</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre>{
+  <span class="c-key">"status"</span>: <span class="c-str">"done"</span>,
+  <span class="c-key">"sheets_processed"</span>: <span class="c-num">3</span>,
+  <span class="c-key">"rows_processed"</span>: <span class="c-num">150</span>,
+  <span class="c-key">"fields_masked"</span>: {
+    <span class="c-key">"Accounts Receivable"</span>: [<span class="c-str">"Customer_Name"</span>, <span class="c-str">"Customer_Email"</span>, <span class="c-str">"IBAN"</span>],
+    <span class="c-key">"Payroll"</span>: [<span class="c-str">"Full_Name"</span>, <span class="c-str">"Email"</span>, <span class="c-str">"SSN"</span>],
+    <span class="c-key">"General Ledger"</span>: [<span class="c-str">"Approved_By"</span>]
+  },
+  <span class="c-key">"file_type"</span>: <span class="c-str">"xlsx"</span>,
+  <span class="c-key">"mime_type"</span>: <span class="c-str">"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"</span>,
+  <span class="c-key">"file_base64"</span>: <span class="c-str">"UEsDBBQABgAIAAAAIQ..."</span>
+}</pre>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td class="name">status</td><td>Always <code>done</code> on success.</td></tr>
+            <tr><td class="name">sheets_processed</td><td>How many sheets were masked.</td></tr>
+            <tr><td class="name">rows_processed</td><td>Total rows across all sheets — this is what counts against your quota.</td></tr>
+            <tr><td class="name">fields_masked</td><td>Which columns were changed, grouped by sheet.</td></tr>
+            <tr><td class="name">file_base64</td><td>The masked file, base64-encoded. Decode and write to disk.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Excel responses include an extra sheet named <strong>DataRepli Summary</strong>, listing
+        every column in the file and whether it was masked or left unchanged.
+      </p>
+
+      <!-- ERRORS -->
+      <h2 id="errors">Errors and limits</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Status</th><th>Meaning</th><th>What to do</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="status-code s-ok">200</td>
+              <td>Success</td><td>Decode <code>file_base64</code> and save it.</td>
+            </tr>
+            <tr>
+              <td class="status-code s-err">400</td>
+              <td>File missing or unreadable</td>
+              <td>Check the file is properly base64-encoded and <code>file_type</code> matches.</td>
+            </tr>
+            <tr>
+              <td class="status-code s-err">401</td>
+              <td>Key missing, invalid, or deactivated</td>
+              <td>Check the header format. Keys deactivate if a subscription payment fails.</td>
+            </tr>
+            <tr>
+              <td class="status-code s-err">403</td>
+              <td>Plan doesn't include API access</td>
+              <td>The free tier is web-only. Upgrade to Pro to use the API.</td>
+            </tr>
+            <tr>
+              <td class="status-code s-warn">429</td>
+              <td>Monthly row limit reached</td>
+              <td>Wait for the next billing period or move to a higher plan.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Row limits by plan</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Plan</th><th>Rows per month</th><th>API access</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Free</td><td>—</td><td>No</td></tr>
+            <tr><td class="name">Pro</td><td>500,000</td><td>Yes</td></tr>
+            <tr><td class="name">Business</td><td>5,000,000</td><td>Yes</td></tr>
+            <tr><td class="name">Enterprise</td><td>Unlimited</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Every row of every sheet counts. A three-sheet workbook with 50 rows each uses 150 rows of quota.</p>
+
+      <!-- DETECTION -->
+      <h2 id="detection">How detection works</h2>
+      <p>Each column is checked twice before a decision is made.</p>
+      <p>
+        <strong>First, the column name.</strong> Headers are matched against known indicators of
+        personal data — <code>name</code>, <code>email</code>, <code>phone</code>, <code>iban</code>,
+        <code>ssn</code>, <code>address</code>, and variations like <code>approved_by</code> or
+        <code>created_by</code> that commonly hold people's names.
+      </p>
+      <p>
+        <strong>Then the values.</strong> If the header gives nothing away, a sample of the column's
+        contents is checked against patterns for emails, IBANs, phone numbers and ID numbers.
+        This catches personal data hiding in columns named <code>col_7</code> or <code>data</code>.
+      </p>
+      <p>
+        Columns matching neither check are left completely untouched — which is why amounts,
+        dates, cost centres and account codes survive intact.
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>Detection is good, not perfect.</strong> A column of plain first names under a
+          meaningless header has no reliable signature and may be missed. Always check the
+          <code>fields_masked</code> response or the summary sheet, and use
+          <code>force_mask</code> for anything sensitive that detection didn't catch.
+        </p>
+      </div>
+
+      <!-- OVERRIDES -->
+      <h2 id="overrides">Controlling which columns are masked</h2>
+      <p>
+        Automatic detection can be corrected in both directions without turning it off.
+      </p>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-lang">JSON request body</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre>{
+  <span class="c-key">"file_base64"</span>: <span class="c-str">"..."</span>,
+  <span class="c-key">"file_type"</span>: <span class="c-str">"xlsx"</span>,
+  <span class="c-key">"auto_detect"</span>: <span class="c-kw">true</span>,
+
+  <span class="c-com">// mask these too, even though detection missed them</span>
+  <span class="c-key">"force_mask"</span>: [<span class="c-str">"Internal_Notes"</span>, <span class="c-str">"col_7"</span>],
+
+  <span class="c-com">// leave these alone, even though detection flagged them</span>
+  <span class="c-key">"never_mask"</span>: [<span class="c-str">"Region"</span>, <span class="c-str">"Product_Name"</span>]
+}</pre>
+      </div>
+
+      <p>
+        For complete manual control, set <code>auto_detect</code> to <code>false</code> and pass
+        a <code>rules</code> object naming each column and its strategy. Columns not listed are
+        left unchanged.
+      </p>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-lang">JSON request body</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre>{
+  <span class="c-key">"file_base64"</span>: <span class="c-str">"..."</span>,
+  <span class="c-key">"file_type"</span>: <span class="c-str">"csv"</span>,
+  <span class="c-key">"auto_detect"</span>: <span class="c-kw">false</span>,
+  <span class="c-key">"rules"</span>: {
+    <span class="c-key">"Customer_Name"</span>: <span class="c-str">"mask"</span>,
+    <span class="c-key">"Email"</span>:         <span class="c-str">"mask"</span>,
+    <span class="c-key">"SSN"</span>:           <span class="c-str">"redact"</span>
+  }
+}</pre>
+      </div>
+
+      <!-- SHEETS -->
+      <h2 id="sheets">Multi-sheet workbooks</h2>
+      <p>
+        Every sheet in an Excel file is processed in one call — no need to split the workbook
+        or make separate requests.
+      </p>
+      <p>
+        Replacements are <strong>consistent across sheets</strong>. If the same customer appears in
+        three different sheets, they become the same replacement identity in all three, so
+        relationships between sheets survive masking and joins still work.
+      </p>
+
+      <div class="callout">
+        <p>
+          Consistency applies within a single request. Sending the same file twice produces
+          two different sets of replacements — mask related data together in one call.
+        </p>
+      </div>
+
+      <h2 id="help">Need help?</h2>
+      <p>
+        Something unclear, or an integration not behaving? Get in touch through the
+        <a href="/#pricing" style="color:#2563eb;font-weight:500;text-decoration:none;">contact form</a>
+        and you'll get a direct reply.
+      </p>
+
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <a href="/" class="logo" style="font-size:20px;">Data<span>Repli</span></a>
+      <ul class="footer-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#pricing">Pricing</a></li>
+        <li><a href="/docs">API</a></li>
+      </ul>
+      <span class="footer-note">© 2026 DataRepli · Processed in the EU · Nothing stored</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+function copyCode(btn){
+  var pre = btn.closest('.code-card').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText);
+  btn.textContent = 'Copied';
+  setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
+}
+</script>
+
+</body>
+</html>

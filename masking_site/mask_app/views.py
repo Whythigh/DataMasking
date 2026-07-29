@@ -439,3 +439,5 @@ def stripe_webhook(request):
         ApiKey.objects.filter(stripe_customer_id=customer_id).update(active=False)
 
     return HttpResponse(status=200)
+def docs(request):
+    return render(request, 'docs.html')
