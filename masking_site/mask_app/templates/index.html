@@ -1,937 +1,645 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DataRepli — Privacy-Safe Data for AI Teams</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DataRepli · Mask personal data before it reaches AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
 
-    :root {
-      --ink:       #0D1117;
-      --ink-2:     #1C2333;
-      --rule:      #1E2D45;
-      --muted:     #4A5568;
-      --ghost:     #8A9BB0;
-      --paper:     #F7F9FC;
-      --white:     #FFFFFF;
-      --signal:    #0057FF;
-      --signal-dim:#003DB3;
-      --safe:      #00C98D;
-      --warn:      #FF5C5C;
-      --mono-bg:   #0A0F1A;
-    }
+body {
+  font-family:'Inter',sans-serif;
+  background:#f8fafc;
+  color:#0b1a33;
+  line-height:1.5;
+}
 
-    html { scroll-behavior: smooth; }
+.container { max-width:1280px; margin:0 auto; padding:0 32px; }
 
-    body {
-      font-family: 'IBM Plex Sans', sans-serif;
-      background: var(--ink);
-      color: var(--white);
-      font-size: 16px;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
+/* ---------- NAV ---------- */
+nav {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:20px 0; border-bottom:1px solid rgba(0,0,0,.04);
+}
+.logo { font-size:24px; font-weight:700; letter-spacing:-.5px; color:#0b1a33; text-decoration:none; }
+.logo span { color:#2563eb; }
+.nav-links { display:flex; align-items:center; gap:32px; list-style:none; font-weight:500; font-size:15px; }
+.nav-links a { text-decoration:none; color:#334155; transition:color .2s; }
+.nav-links a:hover { color:#2563eb; }
+.nav-actions { display:flex; align-items:center; gap:16px; }
 
-    /* ── NAV ── */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 40px;
-      height: 60px;
-      background: rgba(13,17,23,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--rule);
-    }
-    .nav-logo {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 15px; font-weight: 500;
-      color: var(--white); letter-spacing: 0.08em;
-      text-decoration: none;
-    }
-    .nav-logo span { color: var(--signal); }
-    .nav-links { display: flex; gap: 32px; list-style: none; }
-    .nav-links a {
-      font-size: 13px; font-weight: 400; color: var(--ghost);
-      text-decoration: none; letter-spacing: 0.04em;
-      transition: color 0.15s;
-    }
-    .nav-links a:hover { color: var(--white); }
-    .nav-cta {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px; font-weight: 500;
-      background: var(--signal); color: var(--white);
-      border: none; padding: 8px 20px; cursor: pointer;
-      letter-spacing: 0.06em; text-decoration: none;
-      transition: background 0.15s;
-    }
-    .nav-cta:hover { background: var(--signal-dim); }
+.btn-outline {
+  background:transparent; border:1px solid #cbd5e1;
+  padding:10px 22px; border-radius:40px;
+  font-weight:600; font-size:14px; color:#1e293b;
+  cursor:pointer; transition:all .2s; font-family:'Inter',sans-serif;
+  text-decoration:none; display:inline-block;
+}
+.btn-outline:hover { border-color:#2563eb; color:#2563eb; }
 
-    /* ── HERO ── */
-    .hero {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      align-items: center;
-      padding: 100px 80px 80px;
-      gap: 80px;
-      position: relative;
-      overflow: hidden;
-    }
-    .hero::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      background:
-        radial-gradient(ellipse 60% 50% at 70% 50%, rgba(0,87,255,0.08) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0,201,141,0.05) 0%, transparent 60%);
-      pointer-events: none;
-    }
-    .hero-eyebrow {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; font-weight: 500;
-      color: var(--safe); letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-bottom: 24px;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .hero-eyebrow::before {
-      content: ''; display: block;
-      width: 24px; height: 1px; background: var(--safe);
-    }
-    h1 {
-      font-size: clamp(36px, 4vw, 56px);
-      font-weight: 300;
-      line-height: 1.12;
-      letter-spacing: -0.02em;
-      color: var(--white);
-      margin-bottom: 28px;
-    }
-    h1 strong {
-      font-weight: 600;
-      color: var(--white);
-    }
-    h1 em {
-      font-style: normal;
-      color: var(--signal);
-      position: relative;
-    }
-    .hero-sub {
-      font-size: 17px; font-weight: 300;
-      color: var(--ghost); line-height: 1.7;
-      margin-bottom: 44px;
-      max-width: 480px;
-    }
-    .hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-    .btn-primary {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px; font-weight: 500;
-      background: var(--signal); color: var(--white);
-      border: none; padding: 14px 28px;
-      cursor: pointer; letter-spacing: 0.06em;
-      text-decoration: none; display: inline-block;
-      transition: background 0.15s, transform 0.1s;
-    }
-    .btn-primary:hover { background: var(--signal-dim); transform: translateY(-1px); }
-    .btn-ghost {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px; font-weight: 400;
-      background: transparent; color: var(--ghost);
-      border: 1px solid var(--rule); padding: 13px 28px;
-      cursor: pointer; letter-spacing: 0.06em;
-      text-decoration: none; display: inline-block;
-      transition: color 0.15s, border-color 0.15s;
-    }
-    .btn-ghost:hover { color: var(--white); border-color: var(--muted); }
+.btn-primary {
+  background:#2563eb; border:none;
+  padding:10px 28px; border-radius:40px;
+  font-weight:600; font-size:14px; color:#fff;
+  cursor:pointer; transition:all .2s; font-family:'Inter',sans-serif;
+  box-shadow:0 4px 12px rgba(37,99,235,.25);
+  text-decoration:none; display:inline-block;
+}
+.btn-primary:hover { background:#1d4ed8; transform:translateY(-2px); box-shadow:0 8px 20px rgba(37,99,235,.35); }
+.btn-primary.green { background:#059669; box-shadow:0 4px 12px rgba(5,150,105,.25); }
+.btn-primary.green:hover { background:#047857; }
 
-    /* ── TERMINAL WIDGET ── */
-    .terminal {
-      background: var(--mono-bg);
-      border: 1px solid var(--rule);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12.5px;
-      position: relative;
-      overflow: hidden;
-    }
-    .terminal-bar {
-      background: var(--ink-2);
-      padding: 10px 16px;
-      display: flex; align-items: center; gap: 8px;
-      border-bottom: 1px solid var(--rule);
-    }
-    .dot { width: 10px; height: 10px; border-radius: 50%; }
-    .dot-r { background: #FF5F57; }
-    .dot-y { background: #FEBC2E; }
-    .dot-g { background: #28C840; }
-    .terminal-label {
-      font-size: 11px; color: var(--ghost); margin-left: 8px; letter-spacing: 0.06em;
-    }
-    .terminal-body { padding: 24px; line-height: 1.9; }
-    .t-comment { color: #4A5568; }
-    .t-key { color: #7DD3FC; }
-    .t-val { color: #86EFAC; }
-    .t-val-red { color: var(--warn); text-decoration: line-through; opacity: 0.7; }
-    .t-val-green { color: var(--safe); }
-    .t-bracket { color: var(--ghost); }
-    .t-label {
-      display: inline-block;
-      font-size: 10px; letter-spacing: 0.1em;
-      padding: 1px 6px; margin-bottom: 10px;
-    }
-    .t-label-before { background: rgba(255,92,92,0.15); color: var(--warn); }
-    .t-label-after { background: rgba(0,201,141,0.15); color: var(--safe); }
-    .t-divider {
-      border: none; border-top: 1px solid var(--rule);
-      margin: 16px 0;
-    }
-    .t-row { display: flex; justify-content: space-between; gap: 16px; }
-    .t-col { flex: 1; }
+/* ---------- HERO ---------- */
+.hero { display:flex; align-items:center; gap:60px; padding:60px 0 72px; }
+.hero-text { flex:1; }
+.hero-text h1 {
+  font-size:48px; font-weight:700; line-height:1.15;
+  letter-spacing:-1.5px; color:#0b1a33; margin-bottom:20px;
+}
+.hero-text h1 .highlight {
+  background:linear-gradient(145deg,#2563eb,#7c3aed);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.hero-text p.lead { font-size:18px; color:#475569; max-width:540px; margin-bottom:28px; }
+.hero-points { list-style:none; margin-bottom:32px; }
+.hero-points li {
+  display:flex; align-items:flex-start; gap:10px;
+  font-size:15px; color:#334155; padding:5px 0;
+}
+.hero-points i { color:#059669; margin-top:4px; }
+.hero-ctas { display:flex; flex-wrap:wrap; gap:14px; }
+.hero-ctas .btn-primary { padding:14px 36px; font-size:16px; }
 
-    /* ── COMPLIANCE BANNER ── */
-    .compliance-bar {
-      border-top: 1px solid var(--rule);
-      border-bottom: 1px solid var(--rule);
-      padding: 18px 80px;
-      display: flex; align-items: center; gap: 48px;
-      background: var(--ink-2);
-      overflow-x: auto;
-    }
-    .compliance-label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px; color: var(--ghost);
-      letter-spacing: 0.1em; text-transform: uppercase;
-      white-space: nowrap; flex-shrink: 0;
-    }
-    .compliance-tags { display: flex; gap: 16px; flex-wrap: wrap; }
-    .compliance-tag {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; font-weight: 500;
-      color: var(--safe); letter-spacing: 0.08em;
-      border: 1px solid rgba(0,201,141,0.3);
-      padding: 5px 12px;
-    }
+/* ---------- HERO TOOL CARD ---------- */
+.hero-tool {
+  flex:1; background:#fff; border-radius:24px; padding:36px 32px;
+  box-shadow:0 24px 60px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.04);
+  border:1px solid rgba(0,0,0,.04); max-width:480px; margin-left:auto;
+}
+.badge-free {
+  display:inline-block; background:#dcfce7; color:#166534;
+  font-size:13px; font-weight:600; padding:4px 16px;
+  border-radius:40px; margin-bottom:16px;
+}
+.hero-tool h3 { font-size:20px; margin-bottom:6px; }
+.hero-tool .sub { font-size:14px; color:#64748b; margin-bottom:24px; }
+.upload-zone {
+  border:2px dashed #d1d5db; border-radius:16px;
+  padding:40px 20px; text-align:center;
+  transition:border .2s, background .2s; cursor:pointer; background:#fafbfc;
+}
+.upload-zone:hover { border-color:#2563eb; background:#f0f4ff; }
+.upload-zone i { font-size:36px; color:#2563eb; margin-bottom:12px; }
+.upload-zone p { font-weight:500; color:#1e293b; }
+.upload-zone span { font-size:13px; color:#94a3b8; }
+#file-name { display:block; margin-top:10px; font-size:13px; color:#059669; font-weight:600; }
+.upload-submit {
+  width:100%; margin-top:16px; padding:14px;
+  border-radius:40px; border:none; background:#059669; color:#fff;
+  font-weight:600; font-size:15px; cursor:pointer;
+  font-family:'Inter',sans-serif; transition:background .2s;
+  box-shadow:0 4px 12px rgba(5,150,105,.25);
+}
+.upload-submit:hover { background:#047857; }
+.tool-footer {
+  margin-top:18px; display:flex; justify-content:space-between;
+  align-items:center; font-size:13px; color:#64748b; gap:12px; flex-wrap:wrap;
+}
+.tool-footer i { color:#059669; margin-right:4px; }
 
-    /* ── SECTIONS ── */
-    section { padding: 100px 80px; }
-    section + section { border-top: 1px solid var(--rule); }
+/* ---------- PROBLEM BAR ---------- */
+.problem-bar { border-top:1px solid #e9edf2; border-bottom:1px solid #e9edf2; padding:40px 0; background:#fff; }
+.problem-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:32px; }
+.problem-item { display:flex; gap:14px; align-items:flex-start; }
+.problem-icon {
+  width:40px; height:40px; border-radius:10px; background:#eff6ff;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.problem-icon i { color:#2563eb; font-size:17px; }
+.problem-item h4 { font-size:15px; font-weight:600; margin-bottom:3px; }
+.problem-item p { font-size:14px; color:#64748b; line-height:1.55; }
 
-    .section-eyebrow {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px; letter-spacing: 0.14em;
-      text-transform: uppercase; color: var(--ghost);
-      margin-bottom: 16px;
-    }
-    h2 {
-      font-size: clamp(28px, 3vw, 40px);
-      font-weight: 300; line-height: 1.2;
-      letter-spacing: -0.02em;
-      margin-bottom: 16px;
-    }
-    h2 strong { font-weight: 600; }
-    .section-sub {
-      font-size: 16px; color: var(--ghost);
-      font-weight: 300; max-width: 520px;
-      line-height: 1.7;
-    }
+.origin-note {
+  margin-top:32px; padding-top:28px; border-top:1px solid #e9edf2;
+  font-size:15px; color:#334155; max-width:760px;
+}
+.origin-note strong { color:#0b1a33; }
 
-    /* ── HOW IT WORKS ── */
-    .flow-grid {
-      display: grid;
-      grid-template-columns: 1fr 40px 1fr 40px 1fr;
-      align-items: start;
-      gap: 0;
-      margin-top: 64px;
-    }
-    .flow-step {
-      padding: 32px;
-      border: 1px solid var(--rule);
-      background: var(--ink-2);
-      position: relative;
-    }
-    .flow-step-num {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; color: var(--signal);
-      letter-spacing: 0.1em; margin-bottom: 16px;
-    }
-    .flow-step h3 {
-      font-size: 17px; font-weight: 500;
-      margin-bottom: 10px;
-    }
-    .flow-step p {
-      font-size: 14px; color: var(--ghost);
-      font-weight: 300; line-height: 1.6;
-    }
-    .flow-arrow {
-      display: flex; align-items: center; justify-content: center;
-      padding-top: 60px;
-      color: var(--rule); font-size: 20px;
-    }
+/* ---------- HOW IT WORKS ---------- */
+.section { padding:72px 0; }
+.section-head { text-align:center; margin-bottom:48px; }
+.section-head h2 { font-size:36px; font-weight:700; letter-spacing:-.8px; margin-bottom:8px; }
+.section-head p { color:#64748b; font-size:18px; }
 
-    /* ── COMPARISON TABLE ── */
-    .compare-wrap { margin-top: 64px; }
-    .compare-table {
-      width: 100%; border-collapse: collapse;
-      font-size: 14px;
-    }
-    .compare-table thead tr {
-      background: var(--ink-2);
-      border-bottom: 2px solid var(--signal);
-    }
-    .compare-table th {
-      padding: 16px 20px; text-align: left;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; letter-spacing: 0.1em;
-      color: var(--ghost); font-weight: 500;
-    }
-    .compare-table th.col-before { color: var(--warn); }
-    .compare-table th.col-after  { color: var(--safe); }
-    .compare-table td {
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--rule);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px; vertical-align: top;
-    }
-    .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
-    .compare-table td.field-name {
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 13px; color: var(--ghost);
-      font-weight: 400;
-    }
-    .td-before { color: var(--warn); opacity: 0.75; }
-    .td-after  { color: var(--safe); }
+.steps { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+.step {
+  background:#fff; border:1px solid #e9edf2; border-radius:20px;
+  padding:28px 24px; transition:all .25s;
+}
+.step:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,.06); border-color:#cbd5e1; }
+.step-num {
+  width:32px; height:32px; border-radius:8px; background:#2563eb; color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:700; margin-bottom:16px;
+}
+.step h4 { font-size:17px; font-weight:600; margin-bottom:8px; }
+.step p { font-size:14px; color:#64748b; line-height:1.6; }
 
-    /* ── PRICING ── */
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1px;
-      background: var(--rule);
-      border: 1px solid var(--rule);
-      margin-top: 64px;
-    }
-    .price-card {
-      background: var(--ink-2);
-      padding: 36px 28px;
-      display: flex; flex-direction: column;
-      position: relative;
-    }
-    .price-card.featured {
-      background: var(--ink);
-      border: 1px solid var(--signal);
-      margin: -1px;
-      z-index: 1;
-    }
-    .price-badge {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px; letter-spacing: 0.1em;
-      background: var(--signal); color: var(--white);
-      padding: 3px 10px; display: inline-block;
-      margin-bottom: 20px; align-self: flex-start;
-    }
-    .price-tier {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px; letter-spacing: 0.1em;
-      color: var(--ghost); text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-    .price-amount {
-      font-size: 36px; font-weight: 300;
-      letter-spacing: -0.02em; margin-bottom: 4px;
-    }
-    .price-amount span {
-      font-size: 14px; color: var(--ghost); font-weight: 300;
-    }
-    .price-rows {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; color: var(--ghost);
-      margin-bottom: 28px;
-    }
-    .price-divider {
-      border: none; border-top: 1px solid var(--rule);
-      margin-bottom: 24px;
-    }
-    .price-features { list-style: none; flex: 1; }
-    .price-features li {
-      font-size: 13px; color: var(--ghost);
-      padding: 6px 0;
-      display: flex; align-items: flex-start; gap: 10px;
-      font-weight: 300;
-    }
-    .price-features li::before {
-      content: '—';
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; color: var(--muted);
-      flex-shrink: 0; margin-top: 2px;
-    }
-    .price-features li.active { color: var(--white); }
-    .price-features li.active::before { color: var(--safe); content: '✓'; }
-    .price-cta {
-      margin-top: 28px;
-      display: block; text-align: center;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px; letter-spacing: 0.08em;
-      padding: 12px;
-      text-decoration: none;
-      transition: all 0.15s;
-    }
-    .price-cta-outline {
-      border: 1px solid var(--rule); color: var(--ghost);
-    }
-    .price-cta-outline:hover { border-color: var(--muted); color: var(--white); }
-    .price-cta-solid {
-      background: var(--signal); color: var(--white); border: none;
-    }
-    .price-cta-solid:hover { background: var(--signal-dim); }
-    .price-cta-enterprise {
-      border: 1px solid var(--safe); color: var(--safe);
-    }
-    .price-cta-enterprise:hover { background: rgba(0,201,141,0.1); }
+/* ---------- BEFORE / AFTER ---------- */
+.compare-section { background:#fff; border-top:1px solid #e9edf2; border-bottom:1px solid #e9edf2; }
+.compare-wrap { overflow-x:auto; border-radius:16px; border:1px solid #e9edf2; }
+table.compare { width:100%; border-collapse:collapse; font-size:14px; min-width:640px; }
+table.compare thead th {
+  background:#f1f5f9; padding:14px 18px; text-align:left;
+  font-size:12px; font-weight:600; letter-spacing:.4px;
+  text-transform:uppercase; color:#64748b;
+}
+table.compare thead th.before { color:#dc2626; }
+table.compare thead th.after { color:#059669; }
+table.compare td { padding:13px 18px; border-top:1px solid #e9edf2; }
+table.compare td.field { font-weight:500; color:#334155; }
+table.compare td.b { color:#dc2626; font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:13px; }
+table.compare td.a { color:#059669; font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:13px; }
+table.compare td.keep { color:#94a3b8; font-size:13px; }
+table.compare tbody tr:hover { background:#fafbfc; }
 
-    /* ── DEPLOYMENT ── */
-    .deploy-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 1px; background: var(--rule);
-      border: 1px solid var(--rule); margin-top: 64px;
-    }
-    .deploy-card {
-      background: var(--ink-2); padding: 40px 36px;
-    }
-    .deploy-icon {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 22px; margin-bottom: 24px;
-      display: block;
-    }
-    .deploy-card h3 { font-size: 18px; font-weight: 500; margin-bottom: 12px; }
-    .deploy-card p { font-size: 14px; color: var(--ghost); font-weight: 300; line-height: 1.7; margin-bottom: 20px; }
-    .deploy-tag {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; color: var(--signal);
-      border: 1px solid rgba(0,87,255,0.3); padding: 4px 10px;
-      display: inline-block;
-    }
+/* ---------- TRUST / SECURITY ---------- */
+.security-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+.sec-card {
+  background:#fff; border:1px solid #e9edf2; border-radius:16px;
+  padding:24px 20px; text-align:center;
+}
+.sec-card i { font-size:22px; color:#2563eb; margin-bottom:12px; }
+.sec-card h5 { font-size:15px; font-weight:600; margin-bottom:5px; }
+.sec-card p { font-size:13px; color:#64748b; line-height:1.5; }
+.sec-note {
+  margin-top:24px; text-align:center; font-size:14px; color:#64748b;
+}
 
-    /* ── CODE BLOCK ── */
-    .code-section { background: var(--mono-bg); }
-    .code-wrap {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 40px; margin-top: 64px; align-items: start;
-    }
-    .code-block {
-      background: var(--ink-2);
-      border: 1px solid var(--rule);
-    }
-    .code-header {
-      padding: 12px 20px;
-      border-bottom: 1px solid var(--rule);
-      display: flex; align-items: center; gap: 8px;
-    }
-    .code-header .dot { }
-    .code-lang {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; color: var(--ghost);
-      margin-left: auto; letter-spacing: 0.06em;
-    }
-    pre {
-      padding: 24px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12.5px;
-      line-height: 1.8;
-      overflow-x: auto;
-      color: #CBD5E1;
-    }
-    .c-kw  { color: #7DD3FC; }
-    .c-fn  { color: #86EFAC; }
-    .c-str { color: #FCA5A5; }
-    .c-cm  { color: #475569; }
-    .c-num { color: #FDE68A; }
-    .code-explainer { padding: 8px 0; }
-    .code-explainer h3 { font-size: 20px; font-weight: 400; margin-bottom: 16px; }
-    .code-step {
-      display: flex; gap: 16px; padding: 16px 0;
-      border-bottom: 1px solid var(--rule);
-    }
-    .code-step:last-child { border-bottom: none; }
-    .code-step-num {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; color: var(--signal);
-      flex-shrink: 0; margin-top: 2px;
-      letter-spacing: 0.06em;
-    }
-    .code-step-text { font-size: 14px; color: var(--ghost); font-weight: 300; line-height: 1.6; }
-    .code-step-text strong { color: var(--white); font-weight: 500; }
+/* ---------- PRICING ---------- */
+.pricing-section { padding:72px 0 80px; text-align:center; }
+.pricing-section h2 { font-size:36px; font-weight:700; letter-spacing:-.8px; margin-bottom:8px; }
+.pricing-section .subhead { color:#64748b; font-size:18px; margin-bottom:48px; }
+.pricing-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:24px; text-align:left; }
+.pricing-card {
+  background:#fff; border-radius:20px; padding:32px 24px;
+  border:1px solid #e9edf2; transition:all .25s; position:relative;
+  display:flex; flex-direction:column;
+}
+.pricing-card:hover { transform:translateY(-6px); box-shadow:0 20px 48px rgba(0,0,0,.06); border-color:#cbd5e1; }
+.pricing-card.popular { border-color:#2563eb; background:#f8fcff; }
+.popular-badge {
+  position:absolute; top:-12px; right:20px; background:#2563eb; color:#fff;
+  font-size:12px; font-weight:700; padding:4px 18px; border-radius:40px; letter-spacing:.3px;
+}
+.plan-name { font-size:18px; font-weight:600; margin-bottom:4px; }
+.price { font-size:36px; font-weight:700; color:#0b1a33; margin:12px 0 4px; }
+.price span { font-size:16px; font-weight:400; color:#94a3b8; }
+.pricing-card .description { color:#64748b; font-size:14px; margin-bottom:24px; min-height:40px; }
+.pricing-card ul { list-style:none; margin-bottom:32px; flex:1; }
+.pricing-card ul li {
+  font-size:14px; padding:6px 0; color:#334155;
+  display:flex; align-items:flex-start; gap:10px;
+}
+.pricing-card ul li i { color:#059669; width:16px; margin-top:4px; }
+.pricing-card ul li.off { color:#a3adba; }
+.pricing-card ul li.off i { color:#cbd5e1; }
+.btn-card {
+  width:100%; display:block; text-align:center; padding:14px;
+  border-radius:40px; font-weight:600; font-size:15px;
+  border:1px solid #d1d5db; background:transparent; color:#1e293b;
+  cursor:pointer; transition:all .2s; text-decoration:none;
+  font-family:'Inter',sans-serif;
+}
+.btn-card:hover { border-color:#2563eb; color:#2563eb; }
+.pricing-card.popular .btn-card {
+  background:#2563eb; border:none; color:#fff; box-shadow:0 4px 12px rgba(37,99,235,.2);
+}
+.pricing-card.popular .btn-card:hover { background:#1d4ed8; }
 
-    /* ── FOOTER ── */
-    footer {
-      padding: 48px 80px;
-      border-top: 1px solid var(--rule);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 24px;
-    }
-    .footer-logo {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 14px; color: var(--ghost);
-      text-decoration: none;
-    }
-    .footer-logo span { color: var(--signal); }
-    .footer-links { display: flex; gap: 28px; list-style: none; }
-    .footer-links a {
-      font-size: 12px; color: var(--muted);
-      text-decoration: none; letter-spacing: 0.04em;
-      transition: color 0.15s;
-    }
-    .footer-links a:hover { color: var(--ghost); }
-    .footer-note {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; color: var(--muted);
-      letter-spacing: 0.06em;
-    }
+.enterprise-cta {
+  margin-top:48px; padding:32px; background:#f1f5f9; border-radius:20px;
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:20px; text-align:left;
+}
+.enterprise-cta p { font-size:16px; color:#1e293b; }
+.enterprise-cta .btn-primary { padding:14px 36px; font-size:16px; }
 
-    /* ── UPLOAD DEMO ── */
-    .upload-demo {
-      background: var(--ink-2);
-      border: 1px solid var(--rule);
-      padding: 40px;
-      text-align: center;
-    }
-    .upload-area {
-      border: 1px dashed var(--rule);
-      padding: 48px;
-      cursor: pointer;
-      transition: border-color 0.15s;
-    }
-    .upload-area:hover { border-color: var(--signal); }
-    .upload-icon { font-size: 32px; margin-bottom: 16px; display: block; }
-    .upload-text { font-size: 15px; font-weight: 300; color: var(--ghost); margin-bottom: 8px; }
-    .upload-formats {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; color: var(--muted); letter-spacing: 0.06em;
-    }
-    .upload-btn {
-      display: inline-block; margin-top: 24px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px; letter-spacing: 0.06em;
-      background: var(--signal); color: var(--white);
-      padding: 12px 32px; cursor: pointer;
-      border: none; text-decoration: none;
-      transition: background 0.15s;
-    }
-    .upload-btn:hover { background: var(--signal-dim); }
+/* ---------- FAQ ---------- */
+.faq-section { background:#fff; border-top:1px solid #e9edf2; }
+.faq-list { max-width:820px; margin:0 auto; }
+.faq-item { border-bottom:1px solid #e9edf2; padding:22px 0; }
+.faq-item h4 { font-size:16px; font-weight:600; margin-bottom:8px; color:#0b1a33; }
+.faq-item p { font-size:15px; color:#64748b; line-height:1.65; }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 1024px) {
-      .hero { grid-template-columns: 1fr; padding: 100px 40px 60px; }
-      section { padding: 72px 40px; }
-      .compliance-bar { padding: 18px 40px; }
-      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
-      .flow-grid { grid-template-columns: 1fr; }
-      .flow-arrow { display: none; }
-      .deploy-grid { grid-template-columns: 1fr; }
-      .code-wrap { grid-template-columns: 1fr; }
-      footer { padding: 40px; }
-      nav { padding: 0 24px; }
-      .nav-links { display: none; }
-    }
+/* ---------- MODAL ---------- */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(11,26,51,.5); backdrop-filter:blur(4px);
+  justify-content:center; align-items:center; z-index:999; padding:20px;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background:#fff; max-width:480px; width:100%;
+  padding:40px 36px; border-radius:28px;
+  box-shadow:0 40px 80px rgba(0,0,0,.2); animation:slideUp .3s ease; position:relative;
+}
+@keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+.close-modal {
+  position:absolute; top:16px; right:20px; font-size:20px;
+  background:none; border:none; color:#94a3b8; cursor:pointer;
+}
+.modal-box h2 { font-size:24px; margin-bottom:6px; }
+.modal-box > p { color:#64748b; margin-bottom:24px; font-size:15px; }
+.modal-box input, .modal-box textarea {
+  width:100%; padding:14px 16px; border:1px solid #d1d5db;
+  border-radius:12px; margin-bottom:16px; font-size:15px;
+  font-family:'Inter',sans-serif; background:#fafbfc; resize:vertical;
+}
+.modal-box input:focus, .modal-box textarea:focus { outline:2px solid #2563eb; border-color:transparent; }
+.modal-box .btn-primary { width:100%; padding:16px; font-size:16px; }
 
-    @media (max-width: 640px) {
-      section { padding: 60px 24px; }
-      .pricing-grid { grid-template-columns: 1fr; }
-      footer { padding: 32px 24px; flex-direction: column; }
-    }
+/* ---------- FOOTER ---------- */
+footer { padding:40px 0; border-top:1px solid #e9edf2; }
+.footer-inner {
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:20px;
+}
+.footer-links { display:flex; gap:24px; list-style:none; }
+.footer-links a { font-size:14px; color:#64748b; text-decoration:none; }
+.footer-links a:hover { color:#2563eb; }
+.footer-note { font-size:13px; color:#94a3b8; }
 
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { transition: none !important; animation: none !important; }
-    }
-  </style>
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:1024px){
+  .pricing-grid { grid-template-columns:repeat(2,1fr); }
+  .security-grid { grid-template-columns:repeat(2,1fr); }
+  .problem-grid { grid-template-columns:1fr; gap:24px; }
+}
+@media (max-width:900px){
+  .hero { flex-direction:column; padding:40px 0; }
+  .hero-tool { max-width:100%; margin-left:0; }
+  .hero-text h1 { font-size:36px; }
+  .steps { grid-template-columns:1fr; }
+}
+@media (max-width:700px){
+  .nav-links { display:none; }
+  .pricing-grid, .security-grid { grid-template-columns:1fr; }
+  .enterprise-cta { flex-direction:column; text-align:center; }
+  .container { padding:0 20px; }
+  .section, .pricing-section { padding:52px 0; }
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+</style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <a href="#" class="nav-logo">DATA<span>REPLI</span></a>
-  <ul class="nav-links">
-    <li><a href="#how-it-works">How it works</a></li>
-    <li><a href="#pricing">Pricing</a></li>
-    <li><a href="#deploy">Deployment</a></li>
-    <li><a href="#api">API</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ul>
-  <a href="#pricing" class="nav-cta">GET API KEY →</a>
-</nav>
-
-<!-- HERO -->
-<div class="hero-right">
-    <div class="terminal">
-      <div class="terminal-bar">
-        <span class="dot dot-r"></span>
-        <span class="dot dot-y"></span>
-        <span class="dot dot-g"></span>
-        <span class="terminal-label">datarepli — masking preview</span>
-      </div>
-      <div class="terminal-body">
-        <div class="t-row">
-          <div class="t-col">
-            <span class="t-label t-label-before">PRODUCTION DATA</span><br>
-            <span class="t-comment">// customer_0041</span><br>
-            <span class="t-key">name&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-red">"Sarah Chen"</span><br>
-            <span class="t-key">email&nbsp;&nbsp;&nbsp;</span> <span class="t-val-red">"s.chen@acme.com"</span><br>
-            <span class="t-key">iban&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-red">"DE89370400..."</span><br>
-            <span class="t-key">amount&nbsp;&nbsp;</span> <span class="t-val-red">1247.50</span><br>
-            <span class="t-key">score&nbsp;&nbsp;&nbsp;</span> <span class="t-val-red">742</span>
-          </div>
-          <div class="t-col">
-            <span class="t-label t-label-after">MASKED OUTPUT</span><br>
-            <span class="t-comment">// same schema</span><br>
-            <span class="t-key">name&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-green">"Julia Meyer"</span><br>
-            <span class="t-key">email&nbsp;&nbsp;&nbsp;</span> <span class="t-val-green">"j.meyer@ex.net"</span><br>
-            <span class="t-key">iban&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="t-val-green">"DE89370411..."</span><br>
-            <span class="t-key">amount&nbsp;&nbsp;</span> <span class="t-val-green">1189.00</span><br>
-            <span class="t-key">score&nbsp;&nbsp;&nbsp;</span> <span class="t-val-green">738</span>
-          </div>
-        </div>
-        <hr class="t-divider">
-        <span class="t-comment">// referential integrity preserved</span><br>
-        <span class="t-comment">// customer_0041 → "Julia Meyer" in all tables</span><br>
-        <span class="t-comment">// IBAN checksum valid · amount distribution realistic</span><br>
-        <span style="color: var(--safe);">✓ 1,500 rows masked in 0.8s</span>
-      </div>
+<!-- ---------- NAV ---------- -->
+<div class="container">
+  <nav>
+    <a href="/" class="logo">Data<span>Repli</span></a>
+    <ul class="nav-links">
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#compare">What gets masked</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="btn-outline open-modal"><i class="far fa-calendar-alt"></i> Talk to us</button>
+      <a href="#tool" class="btn-primary">Try Free</a>
     </div>
-  </div>
-</section>
-
-<!-- COMPLIANCE BAR -->
-<div class="compliance-bar">
-  <span class="compliance-label">Designed for</span>
-  <div class="compliance-tags">
-    <span class="compliance-tag">GDPR</span>
-    <span class="compliance-tag">HIPAA</span>
-    <span class="compliance-tag">PCI DSS</span>
-    <span class="compliance-tag">CCPA</span>
-    <span class="compliance-tag">ISO 27001</span>
-    <span class="compliance-tag">SOC 2</span>
-  </div>
+  </nav>
 </div>
 
-<!-- HOW IT WORKS -->
-<section id="how-it-works">
-  <div class="section-eyebrow">HOW IT WORKS</div>
-  <h2>From production data to<br><strong>AI-ready data</strong> in seconds</h2>
-  <p class="section-sub">Three steps. No configuration complexity. Integrates into your existing pipeline in under a day.</p>
-
-  <div class="flow-grid">
-    <div class="flow-step">
-      <div class="flow-step-num">STEP 01</div>
-      <h3>Send your data</h3>
-      <p>POST a JSON payload or upload CSV / Excel / XML via the web UI. Define which fields to mask and how — name, IBAN, email, phone, amount, or full redaction.</p>
+<!-- ---------- HERO ---------- -->
+<div class="container">
+  <section class="hero" id="tool">
+    <div class="hero-text">
+      <h1>Your team can't upload real data to AI.<br /><span class="highlight">Now they can.</span></h1>
+      <p class="lead">
+        DataRepli automatically strips names, emails, account numbers and other personal
+        data out of your spreadsheets — so you can use Copilot, ChatGPT or any AI tool
+        on real business data without the privacy risk.
+      </p>
+      <ul class="hero-points">
+        <li><i class="fas fa-check-circle"></i> Finds personal data automatically — no column picking required</li>
+        <li><i class="fas fa-check-circle"></i> Keeps formats and numbers intact, so your analysis still works</li>
+        <li><i class="fas fa-check-circle"></i> Returns a summary showing exactly what was changed</li>
+      </ul>
+      <div class="hero-ctas">
+        <a href="#tool" class="btn-primary green"><i class="fas fa-rocket"></i> Try the free tool</a>
+        <a href="#how" class="btn-outline" style="padding:14px 28px;">See how it works</a>
+      </div>
     </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-step-num">STEP 02</div>
-      <h3>Masking engine runs</h3>
-      <p>Each field is processed by a format-specific masker. Referential integrity is preserved — the same real value always maps to the same fake value across all tables.</p>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-step-num">STEP 03</div>
-      <h3>Receive safe data</h3>
-      <p>Get back structurally identical, statistically realistic data your AI can use without restrictions. Original data is never stored — deleted immediately after processing.</p>
-    </div>
-  </div>
-</section>
 
-<!-- COMPARISON -->
-<section id="comparison" style="background: var(--ink-2);">
-  <div class="section-eyebrow">FIELD-LEVEL MASKING</div>
-  <h2>Every format<br><strong>preserved exactly</strong></h2>
-  <p class="section-sub">IBANs stay valid. Phone numbers keep their country prefix. Amounts stay in realistic ranges. Your AI sees real-world data, not garbage.</p>
+    <!-- Free tool card — wired to Django -->
+    <div class="hero-tool">
+      <span class="badge-free"><i class="fas fa-check-circle"></i> No sign-up required</span>
+      <h3>Free data masker</h3>
+      <p class="sub">Upload a CSV, Excel or XML file and get masked results back in seconds.</p>
 
-  <div class="compare-wrap">
-    <table class="compare-table">
-      <thead>
-        <tr>
-          <th>Field type</th>
-          <th class="col-before">Real data</th>
-          <th class="col-after">Masked output</th>
-          <th>Preserved</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="field-name">Full name</td>
-          <td class="td-before">Sarah Chen</td>
-          <td class="td-after">Julia Meyer</td>
-          <td style="color:var(--ghost); font-size:12px;">Language, gender pattern</td>
-        </tr>
-        <tr>
-          <td class="field-name">IBAN</td>
-          <td class="td-before">DE89 3704 0044 0532 0130</td>
-          <td class="td-after">DE89 3704 0044 0532 4419</td>
-          <td style="color:var(--ghost); font-size:12px;">Country code, valid checksum</td>
-        </tr>
-        <tr>
-          <td class="field-name">Email</td>
-          <td class="td-before">sarah.chen@acme.com</td>
-          <td class="td-after">j.meyer@mailsim.net</td>
-          <td style="color:var(--ghost); font-size:12px;">Valid format, domain structure</td>
-        </tr>
-        <tr>
-          <td class="field-name">Phone</td>
-          <td class="td-before">+1 415 555 0142</td>
-          <td class="td-after">+1 415 555 0198</td>
-          <td style="color:var(--ghost); font-size:12px;">Country prefix, digit count</td>
-        </tr>
-        <tr>
-          <td class="field-name">Transaction amount</td>
-          <td class="td-before">$1,247.50</td>
-          <td class="td-after">$1,189.00</td>
-          <td style="color:var(--ghost); font-size:12px;">Order of magnitude, currency</td>
-        </tr>
-        <tr>
-          <td class="field-name">Credit score</td>
-          <td class="td-before">742</td>
-          <td class="td-after">738</td>
-          <td style="color:var(--ghost); font-size:12px;">Range, distribution bucket</td>
-        </tr>
-        <tr>
-          <td class="field-name">Date of birth</td>
-          <td class="td-before">1984-03-15</td>
-          <td class="td-after">1984-07-22</td>
-          <td style="color:var(--ghost); font-size:12px;">Birth year, age group</td>
-        </tr>
-        <tr>
-          <td class="field-name">SSN / ID number</td>
-          <td class="td-before">123-45-6789</td>
-          <td class="td-after">***</td>
-          <td style="color:var(--ghost); font-size:12px;">Fully redacted</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- FREE TOOL DEMO -->
-<section id="demo">
-  <div class="section-eyebrow">FREE TOOL</div>
-  <h2>Try it now —<br><strong>no sign-up required</strong></h2>
-  <p class="section-sub">Upload a CSV, Excel, or XML file and download masked results in seconds. Nothing is stored.</p>
-
-  <div style="max-width: 560px; margin-top: 48px;">
-    <div class="upload-demo">
-      <div class="upload-demo">
-  <form method="post" enctype="multipart/form-data" action="/upload/">
-    {% csrf_token %}
-    <div class="upload-area" onclick="document.getElementById('file-input').click()">
-      <span class="upload-icon">⬆</span>
-      <p class="upload-text">Drop your file here or click to browse</p>
-      <p class="upload-formats">CSV · XLS · XLSX · XML — max 10 MB</p>
-      <input type="file" id="file-input" name="file" style="display:none" accept=".csv,.xls,.xlsx,.xml">
-    </div>
-    <button type="submit" class="upload-btn">MASK MY DATA →</button>
-  </form>
-</div>
-</section>
-
-<!-- DEPLOYMENT -->
-<section id="deploy" style="background: var(--ink-2);">
-  <div class="section-eyebrow">DEPLOYMENT OPTIONS</div>
-  <h2>Runs wherever<br><strong>your data must stay</strong></h2>
-  <p class="section-sub">Banks have strict data residency requirements. We built three deployment modes to fit every security posture.</p>
-
-  <div class="deploy-grid">
-    <div class="deploy-card">
-      <span class="deploy-icon">☁</span>
-      <h3>Cloud API</h3>
-      <p>Send data to our EU-hosted infrastructure. Files processed and deleted within the same request. Fastest to integrate — one API key and you're live.</p>
-      <span class="deploy-tag">EU DATA RESIDENCY</span>
-    </div>
-    <div class="deploy-card" style="border-left: 1px solid var(--signal); border-right: 1px solid var(--signal);">
-      <span class="deploy-icon" style="color: var(--safe);">⬡</span>
-      <h3>On-Premise Docker</h3>
-      <p>Run the full masking engine inside your firewall. Data never leaves your network. Single Docker container, no external dependencies. Ideal for tier-1 banks.</p>
-      <span class="deploy-tag" style="color: var(--safe); border-color: rgba(0,201,141,0.3);">ZERO DATA EGRESS</span>
-    </div>
-    <div class="deploy-card">
-      <span class="deploy-icon">⬡</span>
-      <h3>VPN-Connected</h3>
-      <p>Private network tunnel to DataRepli infrastructure. Your data travels encrypted over a dedicated connection, with full audit logging on both ends.</p>
-      <span class="deploy-tag">PRIVATE TUNNEL</span>
-    </div>
-  </div>
-</section>
-
-<!-- API CODE -->
-<section id="api" class="code-section">
-  <div class="section-eyebrow">REST API</div>
-  <h2>Integrate in<br><strong>under an hour</strong></h2>
-  <p class="section-sub">A single POST endpoint. Send rows, get masked rows back. Drop it into any pipeline — Python, Node, Java, or curl.</p>
-
-  <div class="code-wrap">
-    <div>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="dot dot-r"></span>
-          <span class="dot dot-y"></span>
-          <span class="dot dot-g"></span>
-          <span class="code-lang">python</span>
+      <form method="post" enctype="multipart/form-data" action="/upload/">
+        {% csrf_token %}
+        <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Click to choose your file</p>
+          <span>CSV · XLS · XLSX · XML — max 10MB</span>
+          <span id="file-name"></span>
+          <input type="file" id="file-input" name="file" style="display:none"
+                 accept=".csv,.xls,.xlsx,.xml"
+                 onchange="document.getElementById('file-name').textContent = this.files[0] ? this.files[0].name : ''">
         </div>
-        <pre><span class="c-kw">import</span> requests
+        <button type="submit" class="upload-submit">Mask my data →</button>
+      </form>
 
-response = requests.post(
-  <span class="c-str">"https://api.datarepli.com/v1/mask"</span>,
-  headers={
-    <span class="c-str">"Authorization"</span>: <span class="c-str">"Bearer dk_live_..."</span>
-  },
-  json={
-    <span class="c-str">"data"</span>: [
-      {
-        <span class="c-str">"name"</span>:   <span class="c-str">"Anna Tamm"</span>,
-        <span class="c-str">"email"</span>:  <span class="c-str">"anna@seb.ee"</span>,
-        <span class="c-str">"iban"</span>:   <span class="c-str">"EE38220012345..."</span>,
-        <span class="c-str">"amount"</span>: <span class="c-num">1247.50</span>
-      }
-    ],
-    <span class="c-str">"rules"</span>: {
-      <span class="c-str">"name"</span>:   <span class="c-str">"mask"</span>,
-      <span class="c-str">"email"</span>:  <span class="c-str">"mask"</span>,
-      <span class="c-str">"iban"</span>:   <span class="c-str">"mask"</span>,
-      <span class="c-str">"amount"</span>: <span class="c-str">"preserve"</span>
-    }
-  }
-)
+      <div class="tool-footer">
+        <span><i class="fas fa-trash-alt"></i> Files deleted after processing</span>
+        <span><i class="fas fa-server"></i> Processed in EU</span>
+      </div>
+    </div>
+  </section>
+</div>
 
-<span class="c-fn">print</span>(response.json())
-<span class="c-cm"># → {"status":"done","rows":1,"masked_data":[...]}</span></pre>
+<!-- ---------- PROBLEM BAR ---------- -->
+<section class="problem-bar">
+  <div class="container">
+    <div class="problem-grid">
+      <div class="problem-item">
+        <div class="problem-icon"><i class="fas fa-ban"></i></div>
+        <div>
+          <h4>AI tools are blocked for real data</h4>
+          <p>Compliance rules stop staff uploading anything with customer names, emails or account numbers.</p>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-icon"><i class="fas fa-clock"></i></div>
+        <div>
+          <h4>So people strip it by hand — or don't bother</h4>
+          <p>Deleting columns manually is slow, error-prone, and quietly breaks the analysis.</p>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-icon"><i class="fas fa-triangle-exclamation"></i></div>
+        <div>
+          <h4>And sometimes it slips through</h4>
+          <p>One pasted spreadsheet with real personal data is all it takes to create a reportable breach.</p>
+        </div>
       </div>
     </div>
 
-    <div class="code-explainer">
-      <h3>How the API works</h3>
-      <div class="code-step">
-        <span class="code-step-num">01</span>
-        <p class="code-step-text"><strong>Authenticate</strong> with your API key in the Authorization header. Keys are tier-scoped — free, pro, business, or enterprise row limits.</p>
-      </div>
-      <div class="code-step">
-        <span class="code-step-num">02</span>
-        <p class="code-step-text"><strong>Send your rows</strong> as a JSON array. Any shape — the engine maps rules to field names, not positions.</p>
-      </div>
-      <div class="code-step">
-        <span class="code-step-num">03</span>
-        <p class="code-step-text"><strong>Define rules per field</strong>: <code style="color:var(--signal)">mask</code> for realistic substitution, <code style="color:var(--signal)">redact</code> for full removal, or omit to pass through unchanged.</p>
-      </div>
-      <div class="code-step">
-        <span class="code-step-num">04</span>
-        <p class="code-step-text"><strong>Referential integrity</strong> is automatic within a job. Send multiple tables in one call and the same customer always maps to the same fake identity.</p>
-      </div>
-      <div style="margin-top: 32px;">
-        <a href="#pricing" class="btn-primary">GET API KEY →</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PRICING -->
-<section id="pricing">
-  <div class="section-eyebrow">PRICING</div>
-  <h2>Start free.<br><strong>Scale when you need to.</strong></h2>
-  <p class="section-sub">No contracts on self-serve tiers. Enterprise contracts are annual with SLA and DPA included.</p>
-
-  <div class="pricing-grid">
-    <div class="price-card">
-      <span class="price-tier">Free</span>
-      <div class="price-amount">€0</div>
-      <div class="price-rows">10,000 rows / month</div>
-      <hr class="price-divider">
-      <ul class="price-features">
-        <li class="active">Web UI masking</li>
-        <li class="active">CSV, Excel, XML</li>
-        <li class="active">Basic field masking</li>
-        <li>API access</li>
-        <li>Saved profiles</li>
-        <li>Audit logs</li>
-      </ul>
-      <a href="/upload/" class="price-cta price-cta-outline">GET STARTED</a>
-    </div>
-
-    <div class="price-card featured">
-      <span class="price-badge">MOST POPULAR</span>
-      <span class="price-tier">Pro</span>
-      <div class="price-amount">€49<span> / mo</span></div>
-      <div class="price-rows">500,000 rows / month</div>
-      <hr class="price-divider">
-      <ul class="price-features">
-        <li class="active">Everything in Free</li>
-        <li class="active">REST API access</li>
-        <li class="active">5 masking profiles</li>
-        <li class="active">JSON + Parquet support</li>
-        <li class="active">Email support</li>
-        <li>Audit logs</li>
-      </ul>
-      <a href="https://buy.stripe.com/test_aFafZg6kSenY0PcaLk7bW01" class="price-cta price-cta-solid">START PRO →</a>
-    </div>
-
-    <div class="price-card">
-      <span class="price-tier">Business</span>
-      <div class="price-amount">€299<span> / mo</span></div>
-      <div class="price-rows">5,000,000 rows / month</div>
-      <hr class="price-divider">
-      <ul class="price-features">
-        <li class="active">Everything in Pro</li>
-        <li class="active">Unlimited profiles</li>
-        <li class="active">Referential integrity</li>
-        <li class="active">Full audit logs</li>
-        <li class="active">SLA 99.9% uptime</li>
-        <li>On-premise deploy</li>
-      </ul>
-      <a href="https://buy.stripe.com/test_dRm5kCaB84NogOa6v47bW00" class="price-cta price-cta-outline">START BUSINESS</a>
-    </div>
-
-    <div class="price-card">
-      <span class="price-tier">Enterprise</span>
-      <div class="price-amount">€2,000<span>+ / mo</span></div>
-      <div class="price-rows">Unlimited rows</div>
-      <hr class="price-divider">
-      <ul class="price-features">
-        <li class="active">Everything in Business</li>
-        <li class="active">On-premise Docker</li>
-        <li class="active">Custom masking rules</li>
-        <li class="active">SSO / SAML</li>
-        <li class="active">Dedicated support</li>
-        <li class="active">DPA + MSA included</li>
-      </ul>
-      <a href="#contact" class="price-cta price-cta-enterprise">CONTACT SALES</a>
-    </div>
-  </div>
-</section>
-
-<!-- CONTACT -->
-<section id="contact" style="background: var(--ink-2);">
-  <div class="section-eyebrow">CONTACT</div>
-  <h2>Talk to us about<br><strong>your bank's setup</strong></h2>
-  <p class="section-sub">Enterprise deployments start with a 30-minute call. We'll understand your stack and propose the right deployment mode. No sales pressure.</p>
-
-  <div style="max-width: 520px; margin-top: 48px;">
-    <div style="display:flex; flex-direction:column; gap:16px;">
-      <input type="text" placeholder="Your name" style="background:var(--ink); border:1px solid var(--rule); color:var(--white); padding:14px 16px; font-family:'IBM Plex Sans',sans-serif; font-size:14px; outline:none; transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--signal)'" onblur="this.style.borderColor='var(--rule)'">
-      <input type="email" placeholder="Work email" style="background:var(--ink); border:1px solid var(--rule); color:var(--white); padding:14px 16px; font-family:'IBM Plex Sans',sans-serif; font-size:14px; outline:none; transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--signal)'" onblur="this.style.borderColor='var(--rule)'">
-      <textarea placeholder="Tell us about your use case" rows="4" style="background:var(--ink); border:1px solid var(--rule); color:var(--white); padding:14px 16px; font-family:'IBM Plex Sans',sans-serif; font-size:14px; outline:none; resize:vertical; transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--signal)'" onblur="this.style.borderColor='var(--rule)'"></textarea>
-      <button class="btn-primary" style="align-self:flex-start;">SEND MESSAGE →</button>
-    </div>
-    <p style="font-size:12px; color:var(--muted); margin-top:16px; font-family:'IBM Plex Mono',monospace;">
-      Or email directly: <span style="color:var(--ghost);">hello@datarepli.com</span>
+    <p class="origin-note">
+      <strong>Why this exists:</strong> DataRepli was built by a data professional working inside a
+      major bank, where this was a daily blocker — the AI tools were there, the data was there,
+      and the two were never allowed to meet. It's an independent product, built to fix that gap.
     </p>
   </div>
 </section>
 
-<!-- FOOTER -->
+<!-- ---------- HOW IT WORKS ---------- -->
+<section class="section" id="how">
+  <div class="container">
+    <div class="section-head">
+      <h2>Three steps, no configuration</h2>
+      <p>Upload, mask, download. Or call the API and skip the browser entirely.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h4>Send your file</h4>
+        <p>Drop in a CSV, Excel or XML file through the browser — or POST it to the API from your own pipeline. Multi-sheet workbooks are handled in one pass.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h4>Personal data is found automatically</h4>
+        <p>Column names and cell values are both scanned to identify names, emails, phone numbers, bank details and ID numbers. You can force-include or exclude any column.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h4>Get a safe file back</h4>
+        <p>Personal data is replaced with realistic substitutes. Amounts, dates and categories stay untouched. A summary sheet lists exactly what changed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- BEFORE / AFTER ---------- -->
+<section class="section compare-section" id="compare">
+  <div class="container">
+    <div class="section-head">
+      <h2>What gets masked — and what doesn't</h2>
+      <p>Identities are replaced. The numbers you actually analyse are left alone.</p>
+    </div>
+    <div class="compare-wrap">
+      <table class="compare">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th class="before">Original</th>
+            <th class="after">After masking</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="field">Full name</td><td class="b">Sarah Chen</td><td class="a">Julia Meyer</td><td class="keep">Identifies a person</td></tr>
+          <tr><td class="field">Email</td><td class="b">sarah.chen@acme.com</td><td class="a">j.meyer@example.net</td><td class="keep">Identifies a person</td></tr>
+          <tr><td class="field">IBAN</td><td class="b">DE89 3704 0044 0532 0130</td><td class="a">DE89 3704 0044 0532 4419</td><td class="keep">Financial identifier</td></tr>
+          <tr><td class="field">Phone</td><td class="b">+1 415 555 0142</td><td class="a">+1 415 555 0198</td><td class="keep">Contact detail</td></tr>
+          <tr><td class="field">National ID</td><td class="b">123-45-6789</td><td class="a">***</td><td class="keep">Redacted entirely</td></tr>
+          <tr><td class="field">Invoice amount</td><td class="b" style="color:#334155">$1,247.50</td><td class="a" style="color:#334155">$1,247.50</td><td class="keep">Not personal — kept</td></tr>
+          <tr><td class="field">Due date</td><td class="b" style="color:#334155">2026-03-15</td><td class="a" style="color:#334155">2026-03-15</td><td class="keep">Not personal — kept</td></tr>
+          <tr><td class="field">Cost centre</td><td class="b" style="color:#334155">CC-200</td><td class="a" style="color:#334155">CC-200</td><td class="keep">Not personal — kept</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- SECURITY ---------- -->
+<section class="section" id="security">
+  <div class="container">
+    <div class="section-head">
+      <h2>How your data is handled</h2>
+      <p>Straight answers, no vague promises.</p>
+    </div>
+    <div class="security-grid">
+      <div class="sec-card">
+        <i class="fas fa-trash-alt"></i>
+        <h5>Nothing is stored</h5>
+        <p>Files are processed in memory and discarded when the request finishes.</p>
+      </div>
+      <div class="sec-card">
+        <i class="fas fa-arrow-right-arrow-left"></i>
+        <h5>One-way by design</h5>
+        <p>No mapping back to the originals is kept, so masked output can't be reversed.</p>
+      </div>
+      <div class="sec-card">
+        <i class="fas fa-server"></i>
+        <h5>EU-hosted</h5>
+        <p>Processing runs on EU infrastructure. On-premise deployment available on request.</p>
+      </div>
+      <div class="sec-card">
+        <i class="fas fa-file-lines"></i>
+        <h5>Full transparency</h5>
+        <p>Every file comes back with a summary of exactly which columns were changed.</p>
+      </div>
+    </div>
+    <p class="sec-note">
+      DataRepli is an early-stage product. Formal certifications such as SOC&nbsp;2 and ISO&nbsp;27001
+      are on the roadmap, not yet in place — if your procurement process requires them,
+      <a href="#" class="open-modal" style="color:#2563eb;font-weight:600;text-decoration:none;">let's talk about timelines</a>.
+    </p>
+  </div>
+</section>
+
+<!-- ---------- PRICING ---------- -->
+<section class="pricing-section" id="pricing">
+  <div class="container">
+    <h2>Simple, transparent pricing</h2>
+    <p class="subhead">Start free. Upgrade when you want to automate it.</p>
+
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="plan-name">Free</div>
+        <div class="price">€0 <span>/mo</span></div>
+        <div class="description">Mask files by hand in the browser.</div>
+        <ul>
+          <li><i class="fas fa-check-circle"></i> Web tool, unlimited use</li>
+          <li><i class="fas fa-check-circle"></i> CSV, Excel &amp; XML</li>
+          <li><i class="fas fa-check-circle"></i> Masking summary included</li>
+          <li class="off"><i class="fas fa-circle-minus"></i> No API access</li>
+        </ul>
+        <a href="/upload/" class="btn-card">Use the free tool</a>
+      </div>
+
+      <div class="pricing-card popular">
+        <span class="popular-badge">Most popular</span>
+        <div class="plan-name">Pro</div>
+        <div class="price">€49 <span>/mo</span></div>
+        <div class="description">Automate masking from your own tools.</div>
+        <ul>
+          <li><i class="fas fa-check-circle"></i> Everything in Free</li>
+          <li><i class="fas fa-check-circle"></i> REST API access</li>
+          <li><i class="fas fa-check-circle"></i> 500,000 rows / month</li>
+          <li><i class="fas fa-check-circle"></i> Multi-sheet workbooks</li>
+          <li><i class="fas fa-check-circle"></i> Email support</li>
+        </ul>
+        <a href="https://buy.stripe.com/test_aFafZg6kSenY0PcaLk7bW01" class="btn-card">Start Pro</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="plan-name">Business</div>
+        <div class="price">€299 <span>/mo</span></div>
+        <div class="description">Higher volume and usage records.</div>
+        <ul>
+          <li><i class="fas fa-check-circle"></i> Everything in Pro</li>
+          <li><i class="fas fa-check-circle"></i> 5,000,000 rows / month</li>
+          <li><i class="fas fa-check-circle"></i> Usage &amp; audit records</li>
+          <li><i class="fas fa-check-circle"></i> Priority support</li>
+        </ul>
+        <a href="https://buy.stripe.com/test_dRm5kCaB84NogOa6v47bW00" class="btn-card">Start Business</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="plan-name">Enterprise</div>
+        <div class="price">Custom</div>
+        <div class="description">For teams with procurement and security review.</div>
+        <ul>
+          <li><i class="fas fa-check-circle"></i> Unlimited volume</li>
+          <li><i class="fas fa-check-circle"></i> On-premise deployment</li>
+          <li><i class="fas fa-check-circle"></i> Data processing agreement</li>
+          <li><i class="fas fa-check-circle"></i> Direct support channel</li>
+        </ul>
+        <button class="btn-card open-modal">Talk to us</button>
+      </div>
+    </div>
+
+    <div class="enterprise-cta">
+      <p>
+        <strong>Not sure it fits your setup?</strong> Send over a question, or a sample of the
+        kind of file you'd want to mask — happy to tell you honestly whether this helps.
+      </p>
+      <button class="btn-primary open-modal"><i class="far fa-comments"></i> Get in touch</button>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- FAQ ---------- -->
+<section class="section faq-section" id="faq">
+  <div class="container">
+    <div class="section-head">
+      <h2>Common questions</h2>
+      <p>The things people ask before trying it.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <h4>Can masked data be turned back into the originals?</h4>
+        <p>No. The substitution is one-way and no reverse mapping is stored. Once a file is masked, the original identities can't be recovered from it — that's the whole point.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Will masking break my analysis?</h4>
+        <p>It shouldn't. Amounts, dates, categories and codes are left untouched — only identifying fields are replaced, and they keep the same shape. If a column gets masked that you needed intact, you can exclude it.</p>
+      </div>
+      <div class="faq-item">
+        <h4>What if it misses something, or masks the wrong column?</h4>
+        <p>Automatic detection is good but not perfect, which is why every file comes back with a summary sheet listing what changed. Through the API you can also force specific columns to be masked or left alone.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Do you store the files I upload?</h4>
+        <p>No. Files are processed in memory and discarded once the response is sent. Usage records keep row counts and column names — never the data itself.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Can this run inside our own network?</h4>
+        <p>On-premise deployment is available for organisations that can't send data to an external service. Get in touch and we'll walk through what your environment needs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- CONTACT MODAL ---------- -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal-box">
+    <button class="close-modal" id="closeModalBtn"><i class="fas fa-times"></i></button>
+    <h2>Get in touch</h2>
+    <p>Questions, a demo, or a specific requirement — send it over and you'll get a real reply.</p>
+    <form method="post" action="/contact/">
+      {% csrf_token %}
+      <input type="text" name="name" placeholder="Your name" required />
+      <input type="email" name="email" placeholder="Work email" required />
+      <textarea name="message" rows="4" placeholder="What would you like to know?" required></textarea>
+      <button type="submit" class="btn-primary"><i class="far fa-paper-plane"></i> Send message</button>
+    </form>
+  </div>
+</div>
+
+<!-- ---------- FOOTER ---------- -->
 <footer>
-  <a href="#" class="footer-logo">DATA<span>REPLI</span></a>
-  <ul class="footer-links">
-    <li><a href="#">Privacy Policy</a></li>
-    <li><a href="#">Terms of Service</a></li>
-    <li><a href="#">API Docs</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ul>
-  <span class="footer-note">© 2025 DataRepli. EU-hosted. GDPR-native.</span>
+  <div class="container">
+    <div class="footer-inner">
+      <a href="/" class="logo" style="font-size:20px;">Data<span>Repli</span></a>
+      <ul class="footer-links">
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#" class="open-modal">Contact</a></li>
+      </ul>
+      <span class="footer-note">© 2026 DataRepli · Processed in the EU · Nothing stored</span>
+    </div>
+  </div>
 </footer>
+
+<script>
+  var modal = document.getElementById('contactModal');
+  function openModal(e){ if(e) e.preventDefault(); modal.classList.add('open'); document.body.style.overflow='hidden'; }
+  function closeModal(){ modal.classList.remove('open'); document.body.style.overflow='auto'; }
+
+  document.querySelectorAll('.open-modal').forEach(function(b){ b.addEventListener('click', openModal); });
+  document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e){ if(e.target === modal) closeModal(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeModal(); });
+</script>
 
 </body>
 </html>
