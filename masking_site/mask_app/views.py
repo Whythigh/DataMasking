@@ -80,9 +80,8 @@ def upload_file(request):
             request.session['dataframe'] = df.to_json()
             form = ColumnSelectForm(columns=df.columns)
             return render(request, 'mask_app/select_columns.html', {'form': form})
-    else:
-        form = UploadFileForm()
-    return render(request, 'mask_app/upload.html', {'form': form})
+    # GET request — no separate upload page, use the one on the homepage
+    return redirect('home')
 
 
 def mask_columns(request):
