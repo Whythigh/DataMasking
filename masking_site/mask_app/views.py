@@ -106,21 +106,77 @@ def upload_file(request):
     except Exception as e:
         return HttpResponse(f"Could not read that file: {e}")
 
-    # ── Mask every sheet, sharing one mapping for consistency ──
-    mapping = {}
-    masked_by_sheet = {}
-    total_rows = 0
+    # ── Store all sheets in session, run detection ──
+    request.session['sheets'] = {n: df.to_json() for n, df in sheets.items()}
 
+    sheet_data = []
     for sheet_name, df in sheets.items():
-        rules = auto_detect_pii(df)
-        for col in rules:
-            if col in df.columns:
-                df[col] = df[col].apply(lambda v: mask_value(v, mapping))
-        sheets[sheet_name] = df
-        masked_by_sheet[sheet_name] = list(rules.keys())
-        total_rows += len(df)
+        detected = auto_detect_pii(df)
+        sheet_data.append({
+            'name': sheet_name,
+            'rows': len(df),
+            'columns': [
+                {
+                    'key': f"{sheet_name}||{col}",   # unique across sheets
+                    'label': str(col),
+                    'detected': col in detected,
+                }
+                for col in df.columns
+            ]
+        })
 
-    # ── Build the output file ──
+    total_detected = sum(
+        1 for s in sheet_data for c in s['columns'] if c['detected']
+    )
+
+    return render(request, 'mask_app/select_columns.html', {
+        'sheet_data': sheet_data,
+        'total_detected': total_detected,
+        'sheet_count': len(sheets),
+    })
+
+def mask_columns(request):
+    if request.method != 'POST':
+        return redirect('home')
+
+    stored = request.session.get('sheets')
+    if not stored:
+        return HttpResponse("Your session expired. Please upload the file again.")
+
+    sheets = {name: pd.read_json(io.StringIO(j)) for name, j in stored.items()}
+
+    selected = request.POST.getlist('columns')      # ["Sheet||Col", ...]
+    if not selected:
+        return HttpResponse("No columns selected — nothing to mask.")
+
+    # group selections back by sheet
+    by_sheet = {}
+    for item in selected:
+        if '||' not in item:
+            continue
+        sheet_name, col = item.split('||', 1)
+        by_sheet.setdefault(sheet_name, []).append(col)
+
+    mapping = {}          # shared across sheets = consistent replacements
+    masked_by_sheet = {}
+
+    try:
+        for sheet_name, df in sheets.items():
+            cols = by_sheet.get(sheet_name, [])
+            for col in cols:
+                if col not in df.columns:
+                    continue
+                approach = request.POST.get(f"approach_{sheet_name}||{col}", 'fpe')
+                if approach == 'xxx':
+                    df[col] = "XXX"
+                else:
+                    df[col] = df[col].apply(lambda v: mask_value(v, mapping))
+            sheets[sheet_name] = df
+            masked_by_sheet[sheet_name] = cols
+    except Exception as e:
+        return HttpResponse(f"Error while masking: {e}")
+
+    # ── Build output ──
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         for sheet_name, df in sheets.items():
@@ -133,63 +189,16 @@ def upload_file(request):
                     'Sheet':  sheet_name,
                     'Column': col,
                     'Status': 'MASKED' if col in masked else 'unchanged',
-                    'Reason': 'personal data detected' if col in masked else 'no personal data detected'
                 })
         pd.DataFrame(summary).to_excel(writer, index=False, sheet_name='DataRepli Summary')
 
     output.seek(0)
-
     response = HttpResponse(
         output.read(),
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     response['Content-Disposition'] = 'attachment; filename="masked_data.xlsx"'
     return response
-
-
-def mask_columns(request):
-    if request.method == 'POST':
-        df_json = request.session.get('dataframe')
-        if not df_json:
-            return HttpResponse("Session expired. Please upload your file again.")
-        df = pd.read_json(io.StringIO(df_json))
-        selected_columns = request.POST.getlist('columns')
-        if not selected_columns:
-            return HttpResponse("No columns selected.")
-
-        mapping = {}
-        try:
-            for col in selected_columns:
-                approach = request.POST.get(f"approach_{col}", 'fpe')
-                if approach == 'xxx':
-                    df[col] = "XXX"
-                else:
-                    df[col] = df[col].apply(lambda v: mask_value(v, mapping))
-        except Exception as e:
-            return HttpResponse(f"Error during masking: {e}")
-
-        summary_rows = []
-        for col in df.columns:
-            if col in selected_columns:
-                summary_rows.append({'Column': col, 'Status': 'MASKED', 'Reason': 'selected by user'})
-            else:
-                summary_rows.append({'Column': col, 'Status': 'unchanged', 'Reason': 'not selected'})
-        summary_df = pd.DataFrame(summary_rows)
-
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name='Masked Data')
-            summary_df.to_excel(writer, index=False, sheet_name='DataRepli Summary')
-        output.seek(0)
-
-        response = HttpResponse(
-            output.read(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename="masked_data.xlsx"'
-        return response
-
-    return HttpResponse("Invalid request method.")
 
 
 def contact_view(request):
