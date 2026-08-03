@@ -68,38 +68,83 @@ def home(request):
 
 
 def upload_file(request):
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            file = request.FILES['file']
-            try:
-                if file.name.endswith('.csv'):
-                    df = pd.read_csv(file)
-                elif file.name.endswith(('.xls', '.xlsx')):
-                    df = pd.read_excel(file)
-                elif file.name.endswith('.xml'):
-                    df = pd.read_xml(file)
+    if request.method != 'POST':
+        return redirect('home')
+
+    form = UploadFileForm(request.POST, request.FILES)
+    if not form.is_valid():
+        return redirect('home')
+
+    file = request.FILES['file']
+    name = file.name.lower()
+
+    # ── Read every sheet ──
+    try:
+        if name.endswith('.csv'):
+            sheets = {'Sheet1': pd.read_csv(file)}
+            is_csv = True
+        elif name.endswith(('.xls', '.xlsx')):
+            sheets = pd.read_excel(file, sheet_name=None)
+            is_csv = False
+        elif name.endswith('.xml'):
+            sheets = {'Sheet1': pd.read_xml(file)}
+            is_csv = False
+        else:
+            return HttpResponse("Unsupported file format. Please upload CSV, Excel or XML.")
+
+        # ── Fix sheets with no real header row ──
+        for sheet in list(sheets.keys()):
+            if looks_headerless(sheets[sheet]):
+                file.seek(0)
+                if is_csv:
+                    fixed = pd.read_csv(file, header=None)
                 else:
-                    return HttpResponse("Unsupported file format.")
+                    fixed = pd.read_excel(file, sheet_name=sheet, header=None)
+                fixed.columns = [f"Column {i+1}" for i in range(len(fixed.columns))]
+                sheets[sheet] = fixed
 
-                # no real headers? re-read so the first row isn't lost
-                if looks_headerless(df):
-                    file.seek(0)
-                    if file.name.endswith('.csv'):
-                        df = pd.read_csv(file, header=None)
-                    elif file.name.endswith(('.xls', '.xlsx')):
-                        df = pd.read_excel(file, header=None)
-                    df.columns = [f"Column {i+1}" for i in range(len(df.columns))]
+    except Exception as e:
+        return HttpResponse(f"Could not read that file: {e}")
 
-            except Exception as e:
-                return HttpResponse(f"Error reading file: {e}")
+    # ── Mask every sheet, sharing one mapping for consistency ──
+    mapping = {}
+    masked_by_sheet = {}
+    total_rows = 0
 
-            request.session['dataframe'] = df.to_json()
-            form = ColumnSelectForm(columns=df.columns)
-            return render(request, 'mask_app/select_columns.html', {'form': form})
+    for sheet_name, df in sheets.items():
+        rules = auto_detect_pii(df)
+        for col in rules:
+            if col in df.columns:
+                df[col] = df[col].apply(lambda v: mask_value(v, mapping))
+        sheets[sheet_name] = df
+        masked_by_sheet[sheet_name] = list(rules.keys())
+        total_rows += len(df)
 
-    # GET — send them to the form on the homepage
-    return redirect('home')
+    # ── Build the output file ──
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        for sheet_name, df in sheets.items():
+            df.to_excel(writer, index=False, sheet_name=str(sheet_name)[:31])
+
+        summary = []
+        for sheet_name, masked in masked_by_sheet.items():
+            for col in sheets[sheet_name].columns:
+                summary.append({
+                    'Sheet':  sheet_name,
+                    'Column': col,
+                    'Status': 'MASKED' if col in masked else 'unchanged',
+                    'Reason': 'personal data detected' if col in masked else 'no personal data detected'
+                })
+        pd.DataFrame(summary).to_excel(writer, index=False, sheet_name='DataRepli Summary')
+
+    output.seek(0)
+
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="masked_data.xlsx"'
+    return response
 
 
 def mask_columns(request):
