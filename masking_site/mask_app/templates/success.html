@@ -1,158 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to DataRepli</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --ink: #0D1117; --ink-2: #1C2333; --rule: #1E2D45;
-      --muted: #4A5568; --ghost: #8A9BB0; --white: #FFFFFF;
-      --signal: #0057FF; --signal-dim: #003DB3; --safe: #00C98D;
-    }
-    body {
-      font-family: 'IBM Plex Sans', sans-serif;
-      background: var(--ink); color: var(--white);
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      padding: 40px 20px;
-      background-image:
-        radial-gradient(ellipse 50% 40% at 70% 20%, rgba(0,201,141,0.10) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0,87,255,0.06) 0%, transparent 60%);
-    }
-    .card {
-      background: var(--ink-2); border: 0.5px solid var(--rule);
-      border-radius: 16px; max-width: 560px; width: 100%; padding: 48px 40px;
-      text-align: center;
-    }
-    .check {
-      width: 56px; height: 56px; border-radius: 50%;
-      background: rgba(0,201,141,0.15); color: var(--safe);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 24px; font-size: 28px;
-    }
-    .logo {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px; letter-spacing: 0.1em; color: var(--ghost);
-      margin-bottom: 12px;
-    }
-    .logo span { color: var(--signal); }
-    h1 { font-size: 28px; font-weight: 300; margin-bottom: 8px; }
-    h1 strong { font-weight: 600; }
-    .subtitle { font-size: 15px; color: var(--ghost); margin-bottom: 32px; }
-    .tier-badge {
-      display: inline-block;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; letter-spacing: 0.08em;
-      background: rgba(0,87,255,0.15); color: var(--signal);
-      padding: 4px 12px; border-radius: 6px; margin-bottom: 28px;
-      text-transform: uppercase;
-    }
-    .key-label {
-      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--ghost); margin-bottom: 10px; text-align: left;
-    }
-    .key-box {
-      background: var(--ink); border: 0.5px solid var(--rule);
-      border-radius: 8px; padding: 16px;
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 8px;
-    }
-    .key-value {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px; color: var(--safe);
-      word-break: break-all; flex: 1; text-align: left;
-    }
-    .copy-btn {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; color: var(--white);
-      background: var(--signal); border: none;
-      padding: 8px 14px; border-radius: 6px; cursor: pointer;
-      flex-shrink: 0; transition: background 0.15s;
-    }
-    .copy-btn:hover { background: var(--signal-dim); }
-    .warning {
-      font-size: 12px; color: var(--ghost);
-      text-align: left; margin-bottom: 28px;
-      display: flex; gap: 8px; align-items: flex-start;
-    }
-    .warning-icon { color: #FDB022; flex-shrink: 0; }
-    .next-steps {
-      background: var(--ink); border: 0.5px solid var(--rule);
-      border-radius: 8px; padding: 20px; text-align: left; margin-bottom: 24px;
-    }
-    .next-steps h3 {
-      font-size: 13px; font-weight: 500; margin-bottom: 12px;
-    }
-    .next-steps code {
-      display: block; background: #0A0F1A; border-radius: 6px;
-      padding: 12px; font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px; color: #CBD5E1; margin-top: 8px;
-      overflow-x: auto; white-space: pre;
-    }
-    .btn-home {
-      display: inline-block;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px; letter-spacing: 0.06em;
-      color: var(--ghost); text-decoration: none;
-      border: 0.5px solid var(--rule); padding: 12px 28px;
-      border-radius: 8px; transition: all 0.15s;
-    }
-    .btn-home:hover { color: var(--white); border-color: var(--muted); }
-    .error-msg {
-      font-size: 14px; color: var(--ghost); line-height: 1.6;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>You're all set · DataRepli</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:#f8fafc; color:#0b1a33; line-height:1.5; }
+.container { max-width:1280px; margin:0 auto; padding:0 32px; }
+code, pre { font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; }
+
+nav { display:flex; justify-content:space-between; align-items:center; padding:20px 0; border-bottom:1px solid rgba(0,0,0,.04); }
+.logo { font-size:24px; font-weight:700; letter-spacing:-.5px; color:#0b1a33; text-decoration:none; }
+.logo span { color:#2563eb; }
+.nav-links { display:flex; gap:28px; list-style:none; font-size:15px; font-weight:500; }
+.nav-links a { color:#334155; text-decoration:none; }
+.nav-links a:hover { color:#2563eb; }
+
+.page-wrap { max-width:620px; margin:0 auto; padding:52px 0 80px; }
+
+.tick { width:60px; height:60px; border-radius:50%; background:#dcfce7; display:flex; align-items:center; justify-content:center; margin:0 auto 22px; }
+.tick i { font-size:26px; color:#059669; }
+
+h1 { font-size:34px; font-weight:700; letter-spacing:-.9px; text-align:center; margin-bottom:8px; }
+.subtitle { text-align:center; color:#64748b; font-size:16.5px; margin-bottom:10px; }
+.plan-badge {
+  display:block; width:fit-content; margin:0 auto 32px;
+  background:#dbeafe; color:#1e40af; font-size:12.5px; font-weight:700;
+  padding:5px 16px; border-radius:40px; letter-spacing:.4px; text-transform:uppercase;
+}
+
+.card { background:#fff; border:1px solid #e9edf2; border-radius:20px; padding:28px; box-shadow:0 4px 16px rgba(0,0,0,.03); margin-bottom:20px; }
+.card-label { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#94a3b8; margin-bottom:12px; }
+
+.key-row { display:flex; align-items:center; gap:12px; background:#0f172a; border-radius:12px; padding:16px 18px; flex-wrap:wrap; }
+.key-val { flex:1; min-width:200px; font-size:13.5px; color:#86efac; word-break:break-all; }
+.copy-btn { background:#2563eb; border:none; color:#fff; font-size:12.5px; font-weight:600; padding:9px 18px; border-radius:8px; cursor:pointer; font-family:'Inter',sans-serif; transition:background .2s; flex-shrink:0; }
+.copy-btn:hover { background:#1d4ed8; }
+
+.warn { display:flex; gap:10px; align-items:flex-start; background:#fffbeb; border-left:3px solid #d97706; border-radius:0 10px 10px 0; padding:14px 16px; margin-top:16px; }
+.warn i { color:#d97706; margin-top:2px; }
+.warn p { font-size:14px; color:#92400e; line-height:1.55; margin:0; }
+
+.next-list { list-style:none; }
+.next-list li { display:flex; gap:14px; padding:14px 0; border-bottom:1px solid #f1f5f9; }
+.next-list li:last-child { border-bottom:none; padding-bottom:0; }
+.next-num { width:26px; height:26px; border-radius:7px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; flex-shrink:0; }
+.next-list h4 { font-size:14.5px; font-weight:600; margin-bottom:3px; }
+.next-list p { font-size:14px; color:#64748b; line-height:1.55; margin:0; }
+.next-list a { color:#2563eb; font-weight:500; text-decoration:none; }
+.next-list a:hover { text-decoration:underline; }
+
+.snippet { background:#0f172a; border-radius:10px; padding:14px 16px; margin-top:10px; overflow-x:auto; }
+.snippet pre { font-size:12.5px; line-height:1.7; color:#e2e8f0; }
+.c-key { color:#7dd3fc; }
+
+.actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:28px; }
+.btn-primary { background:#2563eb; border:none; padding:13px 30px; border-radius:40px; font-weight:600; font-size:15px; color:#fff; cursor:pointer; text-decoration:none; display:inline-block; font-family:'Inter',sans-serif; box-shadow:0 4px 12px rgba(37,99,235,.25); transition:all .2s; }
+.btn-primary:hover { background:#1d4ed8; transform:translateY(-2px); }
+.btn-outline { background:transparent; border:1px solid #cbd5e1; padding:13px 30px; border-radius:40px; font-weight:600; font-size:15px; color:#1e293b; text-decoration:none; display:inline-block; font-family:'Inter',sans-serif; transition:all .2s; }
+.btn-outline:hover { border-color:#2563eb; color:#2563eb; }
+
+.pending { text-align:center; }
+.pending p { font-size:15.5px; color:#64748b; line-height:1.7; margin-bottom:16px; }
+.pending a { color:#2563eb; font-weight:500; text-decoration:none; }
+
+@media (max-width:700px){
+  .container { padding:0 20px; }
+  .nav-links { display:none; }
+  h1 { font-size:27px; }
+  .card { padding:20px; }
+  .page-wrap { padding:32px 0 56px; }
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
 </head>
 <body>
-  <div class="card">
-    <div class="check">✓</div>
-    <div class="logo">DATA<span>REPLI</span></div>
+
+<div class="container">
+  <nav>
+    <a href="/" class="logo">Data<span>Repli</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/docs">API docs</a></li>
+    </ul>
+  </nav>
+</div>
+
+<div class="container">
+  <div class="page-wrap">
+
+    <div class="tick"><i class="fas fa-check"></i></div>
 
     {% if api_key %}
-      <h1>You're <strong>all set</strong></h1>
-      <p class="subtitle">Your subscription is active. Here's your API key.</p>
-      <div class="tier-badge">{{ tier }} plan</div>
+      <h1>You're all set</h1>
+      <p class="subtitle">Your subscription is active and your API key is ready.</p>
+      <span class="plan-badge">{{ tier }} plan</span>
 
-      <div class="key-label">Your API key</div>
-      <div class="key-box">
-        <span class="key-value" id="apikey">{{ api_key }}</span>
-        <button class="copy-btn" onclick="copyKey()">COPY</button>
-      </div>
-      <div class="warning">
-        <span class="warning-icon">⚠</span>
-        <span>Save this key now — for security, this is the only time it's shown in full. Store it somewhere safe.</span>
-      </div>
-
-      <div class="next-steps">
-        <h3>Use it in your requests</h3>
-        <code>Authorization: Bearer {{ api_key }}</code>
+      <div class="card">
+        <div class="card-label">Your API key</div>
+        <div class="key-row">
+          <span class="key-val" id="apikey">{{ api_key }}</span>
+          <button class="copy-btn" onclick="copyKey()">Copy key</button>
+        </div>
+        <div class="warn">
+          <i class="fas fa-triangle-exclamation"></i>
+          <p><strong>Save this now.</strong> For security this is the only time the full key is shown. Store it somewhere safe — a password manager or your project's environment variables.</p>
+        </div>
       </div>
 
-      <a href="/" class="btn-home">← BACK TO HOME</a>
+      <div class="card">
+        <div class="card-label">What to do next</div>
+        <ul class="next-list">
+          <li>
+            <span class="next-num">1</span>
+            <div>
+              <h4>Store the key safely</h4>
+              <p>Keep it out of code that gets committed or shared — an environment variable is the usual approach.</p>
+            </div>
+          </li>
+          <li>
+            <span class="next-num">2</span>
+            <div>
+              <h4>Send it with every request</h4>
+              <p>Add it to the Authorization header:</p>
+              <div class="snippet"><pre><span class="c-key">Authorization</span>: Bearer {{ api_key }}</pre></div>
+            </div>
+          </li>
+          <li>
+            <span class="next-num">3</span>
+            <div>
+              <h4>Make your first call</h4>
+              <p>The <a href="/docs">API documentation</a> has a complete working example you can copy and run in under a minute.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <a href="/docs" class="btn-primary"><i class="fas fa-book" style="margin-right:6px"></i> Read the docs</a>
+        <a href="/" class="btn-outline">Back to home</a>
+      </div>
+
     {% else %}
-      <h1>Payment <strong>received</strong></h1>
-      <p class="error-msg">
-        Thanks for subscribing! We're setting up your API key.
-        If you don't see it here, please check your email —
-        or contact <span style="color:var(--signal)">hello@datarepli.com</span>
-        and we'll send your key right away.
-      </p>
-      <br>
-      <a href="/" class="btn-home">← BACK TO HOME</a>
+      <h1>Payment received</h1>
+      <div class="card pending">
+        <p>
+          Thanks for subscribing. Your API key is being generated — if it hasn't appeared
+          here within a minute, refresh this page.
+        </p>
+        <p>
+          Still not showing? Get in touch through the
+          <a href="/#pricing">contact form</a> and your key will be sent over straight away.
+        </p>
+      </div>
+      <div class="actions">
+        <a href="/" class="btn-primary">Back to home</a>
+      </div>
     {% endif %}
-  </div>
 
-  <script>
-    function copyKey() {
-      const key = document.getElementById('apikey').textContent;
-      navigator.clipboard.writeText(key);
-      const btn = document.querySelector('.copy-btn');
-      btn.textContent = 'COPIED';
-      setTimeout(() => btn.textContent = 'COPY', 1500);
-    }
-  </script>
+  </div>
+</div>
+
+<script>
+function copyKey(){
+  var key = document.getElementById('apikey').textContent.trim();
+  navigator.clipboard.writeText(key);
+  var btn = document.querySelector('.copy-btn');
+  btn.textContent = 'Copied';
+  setTimeout(function(){ btn.textContent = 'Copy key'; }, 1600);
+}
+</script>
+
 </body>
 </html>

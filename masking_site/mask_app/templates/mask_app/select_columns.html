@@ -1,146 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Select Columns to Mask — DataRepli</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --ink: #0D1117; --ink-2: #1C2333; --rule: #1E2D45;
-      --muted: #4A5568; --ghost: #8A9BB0; --white: #FFFFFF;
-      --signal: #0057FF; --signal-dim: #003DB3; --safe: #00C98D;
-    }
-    body {
-      font-family: 'IBM Plex Sans', sans-serif;
-      background: var(--ink); color: var(--white);
-      min-height: 100vh;
-      display: flex; align-items: flex-start; justify-content: center;
-      padding: 60px 20px;
-      background-image:
-        radial-gradient(ellipse 50% 40% at 70% 20%, rgba(0,87,255,0.08) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0,201,141,0.05) 0%, transparent 60%);
-    }
-    .card {
-      background: var(--ink-2); border: 0.5px solid var(--rule);
-      border-radius: 14px; max-width: 560px; width: 100%; padding: 40px;
-    }
-    .logo {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px; letter-spacing: 0.08em;
-      color: var(--white); text-align: center; margin-bottom: 24px;
-    }
-    .logo span { color: var(--signal); }
-    h1 {
-      font-size: 26px; font-weight: 300; letter-spacing: -0.02em;
-      text-align: center; margin-bottom: 20px;
-    }
-    h1 strong { font-weight: 600; }
-    .explainer {
-      background: var(--ink); border: 0.5px solid var(--rule);
-      border-radius: 8px; padding: 16px;
-      font-size: 13px; color: var(--ghost); line-height: 1.6; margin-bottom: 20px;
-    }
-    .explainer b { color: var(--white); font-weight: 500; }
-    .explainer .tag {
-      font-family: 'IBM Plex Mono', monospace; color: var(--safe); font-size: 12px;
-    }
-    .instruction {
-      font-size: 13px; color: var(--ghost); text-align: center; margin-bottom: 20px;
-    }
-    .select-all {
-      display: flex; align-items: center; gap: 10px;
-      padding: 12px 14px; margin-bottom: 16px;
-      background: rgba(0,87,255,0.08);
-      border: 0.5px solid rgba(0,87,255,0.3);
-      border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer;
-    }
-    .col-item {
-      background: var(--ink); border: 0.5px solid var(--rule);
-      border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
-      transition: border-color 0.15s;
-    }
-    .col-item:hover { border-color: var(--muted); }
-    .col-header {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-    }
-    .col-name {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px; font-weight: 500; color: var(--white);
-    }
-    .approach-options {
-      display: flex; gap: 20px; padding-left: 26px;
-    }
-    .approach-options label {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 12px; color: var(--ghost); cursor: pointer;
-    }
-    input[type="checkbox"], input[type="radio"] {
-      accent-color: var(--signal); width: 15px; height: 15px; cursor: pointer;
-    }
-    .btn-submit {
-      width: 100%; font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px; letter-spacing: 0.06em;
-      background: var(--signal); color: var(--white);
-      border: none; border-radius: 8px; padding: 14px; margin-top: 20px;
-      cursor: pointer; transition: background 0.15s;
-    }
-    .btn-submit:hover { background: var(--signal-dim); }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Choose what to mask · DataRepli</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Inter',sans-serif; background:#f8fafc; color:#0b1a33;
+  line-height:1.5; min-height:100vh;
+}
+.container { max-width:1280px; margin:0 auto; padding:0 32px; }
+
+nav { display:flex; justify-content:space-between; align-items:center; padding:20px 0; border-bottom:1px solid rgba(0,0,0,.04); }
+.logo { font-size:24px; font-weight:700; letter-spacing:-.5px; color:#0b1a33; text-decoration:none; }
+.logo span { color:#2563eb; }
+.nav-back { font-size:14px; color:#64748b; text-decoration:none; display:flex; align-items:center; gap:7px; }
+.nav-back:hover { color:#2563eb; }
+
+.page-wrap { max-width:680px; margin:0 auto; padding:44px 0 72px; }
+
+.progress { display:flex; align-items:center; gap:8px; margin-bottom:28px; justify-content:center; }
+.pstep { display:flex; align-items:center; gap:8px; font-size:13px; color:#94a3b8; }
+.pdot {
+  width:22px; height:22px; border-radius:50%; background:#e2e8f0; color:#94a3b8;
+  display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;
+}
+.pstep.done .pdot { background:#dcfce7; color:#166534; }
+.pstep.done { color:#166534; }
+.pstep.active .pdot { background:#2563eb; color:#fff; }
+.pstep.active { color:#2563eb; font-weight:600; }
+.pline { width:28px; height:1px; background:#e2e8f0; }
+
+h1 { font-size:32px; font-weight:700; letter-spacing:-.8px; text-align:center; margin-bottom:8px; }
+.subtitle { text-align:center; color:#64748b; font-size:16px; margin-bottom:32px; }
+
+.info-card {
+  background:#eff6ff; border-left:3px solid #2563eb;
+  border-radius:0 12px 12px 0; padding:16px 20px; margin-bottom:24px;
+}
+.info-card p { font-size:14px; color:#1e40af; line-height:1.6; margin:0; }
+.info-card p + p { margin-top:8px; }
+.info-card strong { font-weight:600; }
+.tag-xxx {
+  background:#dbeafe; padding:1px 7px; border-radius:5px;
+  font-family:ui-monospace,Menlo,monospace; font-size:12.5px; font-weight:600;
+}
+
+.card {
+  background:#fff; border:1px solid #e9edf2; border-radius:20px;
+  padding:28px; box-shadow:0 4px 16px rgba(0,0,0,.03);
+}
+
+.select-all {
+  display:flex; align-items:center; gap:11px;
+  background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;
+  padding:14px 16px; margin-bottom:18px; cursor:pointer;
+  font-size:14.5px; font-weight:600; color:#334155; transition:all .15s;
+}
+.select-all:hover { border-color:#cbd5e1; background:#f1f5f9; }
+
+.col-count {
+  font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.5px;
+  color:#94a3b8; margin-bottom:12px;
+}
+
+.col-item {
+  border:1px solid #e9edf2; border-radius:12px;
+  padding:14px 16px; margin-bottom:10px; transition:all .15s; background:#fff;
+}
+.col-item:hover { border-color:#cbd5e1; }
+.col-item.checked { border-color:#bfdbfe; background:#f8fcff; }
+.col-head { display:flex; align-items:center; gap:11px; }
+.col-name {
+  font-family:ui-monospace,'SF Mono',Menlo,monospace;
+  font-size:14px; font-weight:500; color:#1e293b; word-break:break-all;
+}
+.approach {
+  display:flex; gap:18px; padding-left:27px; margin-top:9px;
+}
+.approach label {
+  display:flex; align-items:center; gap:6px;
+  font-size:13px; color:#64748b; cursor:pointer;
+}
+.approach label:hover { color:#334155; }
+
+input[type=checkbox], input[type=radio] {
+  accent-color:#2563eb; width:16px; height:16px; cursor:pointer; flex-shrink:0;
+}
+
+.btn-submit {
+  width:100%; margin-top:22px; padding:15px;
+  border-radius:40px; border:none; background:#2563eb; color:#fff;
+  font-weight:600; font-size:15.5px; cursor:pointer;
+  font-family:'Inter',sans-serif; transition:all .2s;
+  box-shadow:0 4px 12px rgba(37,99,235,.25);
+}
+.btn-submit:hover { background:#1d4ed8; transform:translateY(-1px); box-shadow:0 8px 20px rgba(37,99,235,.3); }
+
+.footnote {
+  text-align:center; font-size:13px; color:#94a3b8; margin-top:18px;
+}
+.footnote i { color:#059669; margin-right:5px; }
+
+@media (max-width:700px){
+  .container { padding:0 20px; }
+  .page-wrap { padding:28px 0 48px; }
+  h1 { font-size:26px; }
+  .card { padding:20px; }
+  .progress { gap:5px; }
+  .pstep span.lbl { display:none; }
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
 </head>
 <body>
-  <div class="card">
-    <div class="logo">DATA<span>REPLI</span></div>
-    <h1>Select columns to <strong>mask</strong></h1>
 
-    <div class="explainer">
-      <b>Format Preserving Encryption (FPE)</b> keeps the same length and format of the original data, so it looks similar but is scrambled.<br><br>
-      <span class="tag">XXX</span> replaces the entire column with the literal string "XXX."
+<div class="container">
+  <nav>
+    <a href="/" class="logo">Data<span>Repli</span></a>
+    <a href="/" class="nav-back"><i class="fas fa-arrow-left"></i> Start over</a>
+  </nav>
+</div>
+
+<div class="container">
+  <div class="page-wrap">
+
+    <div class="progress">
+      <div class="pstep done"><span class="pdot"><i class="fas fa-check"></i></span><span class="lbl">Upload</span></div>
+      <div class="pline"></div>
+      <div class="pstep active"><span class="pdot">2</span><span class="lbl">Choose columns</span></div>
+      <div class="pline"></div>
+      <div class="pstep"><span class="pdot">3</span><span class="lbl">Download</span></div>
     </div>
 
-    <form method="post" action="{% url 'mask_columns' %}">
-      {% csrf_token %}
+    <h1>Choose what to mask</h1>
+    <p class="subtitle">Tick the columns holding personal data, and pick how each should be handled.</p>
 
-      <p class="instruction">Check the columns you want to mask, and pick an approach for each:</p>
+    <div class="info-card">
+      <p><strong>FPE</strong> keeps the original length and format, so the value still looks like real data — just scrambled. Best when your analysis needs the shape of the data.</p>
+      <p><span class="tag-xxx">XXX</span> replaces the whole column with a fixed placeholder. Use it for anything that shouldn't survive in any recognisable form.</p>
+    </div>
 
-      <label class="select-all">
-        <input type="checkbox" id="selectAll" onclick="toggleAllColumns(this)">
-        Select all columns (sets approach to FPE)
-      </label>
+    <div class="card">
+      <form method="post" action="{% url 'mask_columns' %}">
+        {% csrf_token %}
 
-      {% for value, label in form.fields.columns.choices %}
-      <div class="col-item">
-        <div class="col-header">
-          <input type="checkbox" name="columns" value="{{ value }}">
-          <span class="col-name">{{ label }}</span>
+        <label class="select-all">
+          <input type="checkbox" id="selectAll" onclick="toggleAllColumns(this)">
+          Select every column (applies FPE)
+        </label>
+
+        <div class="col-count">Columns found in your file</div>
+
+        {% for value, label in form.fields.columns.choices %}
+        <div class="col-item">
+          <div class="col-head">
+            <input type="checkbox" name="columns" value="{{ value }}" onchange="markRow(this)">
+            <span class="col-name">{{ label }}</span>
+          </div>
+          <div class="approach">
+            <label><input type="radio" name="approach_{{ value }}" value="fpe" checked> FPE</label>
+            <label><input type="radio" name="approach_{{ value }}" value="xxx"> XXX</label>
+          </div>
         </div>
-        <div class="approach-options">
-          <label><input type="radio" name="approach_{{ value }}" value="fpe" checked> FPE</label>
-          <label><input type="radio" name="approach_{{ value }}" value="xxx"> XXX</label>
-        </div>
-      </div>
-      {% endfor %}
+        {% endfor %}
 
-      <button type="submit" class="btn-submit">APPLY MASKING →</button>
-    </form>
+        <button type="submit" class="btn-submit">Mask and download <i class="fas fa-arrow-right" style="margin-left:4px"></i></button>
+      </form>
+    </div>
+
+    <p class="footnote">
+      <i class="fas fa-trash-alt"></i>Your file is processed in memory and discarded straight after
+    </p>
+
   </div>
+</div>
 
-  <script>
-    function toggleAllColumns(source) {
-      const columnCheckboxes = document.querySelectorAll('input[name="columns"]');
-      columnCheckboxes.forEach(cb => {
-        cb.checked = source.checked;
-        const approachFpe = document.querySelector(`input[name="approach_${cb.value}"][value="fpe"]`);
-        const approachXxx = document.querySelector(`input[name="approach_${cb.value}"][value="xxx"]`);
-        if (source.checked) {
-          if (approachFpe) approachFpe.checked = true;
-        } else {
-          if (approachFpe) approachFpe.checked = false;
-          if (approachXxx) approachXxx.checked = false;
-        }
-      });
-    }
-  </script>
+<script>
+function markRow(cb){
+  cb.closest('.col-item').classList.toggle('checked', cb.checked);
+}
+function toggleAllColumns(source){
+  document.querySelectorAll('input[name="columns"]').forEach(function(cb){
+    cb.checked = source.checked;
+    markRow(cb);
+    var fpe = document.querySelector('input[name="approach_'+cb.value+'"][value="fpe"]');
+    var xxx = document.querySelector('input[name="approach_'+cb.value+'"][value="xxx"]');
+    if (source.checked){ if(fpe) fpe.checked = true; }
+    else { if(fpe) fpe.checked = false; if(xxx) xxx.checked = false; }
+  });
+}
+</script>
+
 </body>
 </html>
