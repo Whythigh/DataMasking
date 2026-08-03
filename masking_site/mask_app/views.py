@@ -56,6 +56,13 @@ def mask_value(value, mapping):
 
 # ── Web pages ───────────────────────────────────────────────────
 
+def looks_headerless(df):
+    """True if most column names are pandas placeholders."""
+    if len(df.columns) == 0:
+        return False
+    unnamed = sum(1 for c in df.columns if str(c).startswith('Unnamed:'))
+    return unnamed > len(df.columns) / 2
+
 def home(request):
     return render(request, 'index.html')
 
@@ -74,13 +81,24 @@ def upload_file(request):
                     df = pd.read_xml(file)
                 else:
                     return HttpResponse("Unsupported file format.")
+
+                # no real headers? re-read so the first row isn't lost
+                if looks_headerless(df):
+                    file.seek(0)
+                    if file.name.endswith('.csv'):
+                        df = pd.read_csv(file, header=None)
+                    elif file.name.endswith(('.xls', '.xlsx')):
+                        df = pd.read_excel(file, header=None)
+                    df.columns = [f"Column {i+1}" for i in range(len(df.columns))]
+
             except Exception as e:
                 return HttpResponse(f"Error reading file: {e}")
 
             request.session['dataframe'] = df.to_json()
             form = ColumnSelectForm(columns=df.columns)
             return render(request, 'mask_app/select_columns.html', {'form': form})
-    # GET request — no separate upload page, use the one on the homepage
+
+    # GET — send them to the form on the homepage
     return redirect('home')
 
 
@@ -279,6 +297,18 @@ def mask_file_api(request):
             sheets = {'Sheet1': pd.read_csv(file_obj)}
         else:
             sheets = pd.read_excel(file_obj, sheet_name=None)
+
+        # ── Fix sheets that have no real header row ──
+        for name in list(sheets.keys()):
+            if looks_headerless(sheets[name]):
+                file_obj.seek(0)
+                if file_type == 'csv':
+                    fixed = pd.read_csv(file_obj, header=None)
+                else:
+                    fixed = pd.read_excel(file_obj, sheet_name=name, header=None)
+                fixed.columns = [f"Column {i+1}" for i in range(len(fixed.columns))]
+                sheets[name] = fixed
+
     except Exception as e:
         return Response({'error': f'Could not read file: {e}'}, status=400)
 
