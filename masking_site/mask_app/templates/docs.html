@@ -167,6 +167,7 @@ footer { padding:36px 0; border-top:1px solid #e9edf2; background:#fff; }
         <li><a href="#endpoint">Mask a file</a></li>
         <li><a href="#params">Parameters</a></li>
         <li><a href="#response">Response</a></li>
+        <li><a href="#markdown">Markdown output</a></li>
         <li><a href="#errors">Errors &amp; limits</a></li>
       </ul>
       <h5>Guides</h5>
@@ -180,15 +181,16 @@ footer { padding:36px 0; border-top:1px solid #e9edf2; background:#fff; }
     <main class="docs-content">
       <h1>API documentation</h1>
       <p class="intro">
-        One endpoint. Send a file, get it back with personal data masked.
-        Everything below works with the API key issued when you subscribe.
+        One endpoint. Send a file, get it back with personal data masked — as a file,
+        or as a table ready to paste into an LLM. Everything below works with the API
+        key issued when you subscribe.
       </p>
 
       <!-- OVERVIEW -->
       <h2 id="overview">Overview</h2>
       <p>
         The DataRepli API takes a spreadsheet, finds the columns containing personal
-        data, replaces those values with realistic substitutes, and returns the file.
+        data, replaces those values with realistic substitutes, and returns the result.
         Amounts, dates, codes and other non-identifying fields are left untouched.
       </p>
       <ul class="plain">
@@ -196,6 +198,7 @@ footer { padding:36px 0; border-top:1px solid #e9edf2; background:#fff; }
         <li>Detects personal data automatically — no configuration needed</li>
         <li>Processes every sheet in a workbook in a single call</li>
         <li>The same original value maps to the same replacement across all sheets</li>
+        <li>Returns either the masked file or a Markdown table for LLM prompts</li>
         <li>Files are processed in memory and never stored</li>
       </ul>
 
@@ -287,8 +290,8 @@ curl -X POST https://www.datarepli.com/api/v1/mask-file \
         <span class="endpoint-url">https://www.datarepli.com/api/v1/mask-file</span>
       </div>
       <p>
-        Send a base64-encoded file as JSON. The response contains the masked file,
-        also base64-encoded, plus a record of what was changed.
+        Send a base64-encoded file as JSON. The response contains either the masked file
+        (also base64-encoded) or a Markdown table, plus a record of what was changed.
       </p>
 
       <!-- PARAMS -->
@@ -313,6 +316,16 @@ curl -X POST https://www.datarepli.com/api/v1/mask-file \
               <td class="name">auto_detect</td>
               <td class="type">boolean</td>
               <td>Find personal data automatically. Defaults to <code>true</code>. Set to <code>false</code> to control masking entirely with <code>rules</code>.</td>
+            </tr>
+            <tr>
+              <td class="name">output_format</td>
+              <td class="type">string</td>
+              <td>Either <code>file</code> (default) to get the masked spreadsheet back, or <code>markdown</code> to get an AI-ready table instead.</td>
+            </tr>
+            <tr>
+              <td class="name">max_rows</td>
+              <td class="type">integer</td>
+              <td>Caps how many rows per sheet appear in the Markdown output — useful for staying inside an LLM's context window. Only applies when <code>output_format</code> is <code>markdown</code>.</td>
             </tr>
             <tr>
               <td class="name">force_mask</td>
@@ -382,6 +395,81 @@ curl -X POST https://www.datarepli.com/api/v1/mask-file \
         every column in the file and whether it was masked or left unchanged.
       </p>
 
+      <!-- MARKDOWN OUTPUT -->
+      <h2 id="markdown">Markdown output</h2>
+      <p>
+        Set <code>output_format</code> to <code>markdown</code> and you'll get a formatted
+        table back instead of a file — ready to drop straight into an LLM prompt with no
+        file handling at all.
+      </p>
+      <p>
+        It's a compact representation: fewer tokens than JSON for the same data, and
+        structured so models read the columns correctly.
+      </p>
+
+      <div class="code-card">
+        <div class="code-head"><span class="code-lang">Python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre><span class="c-kw">import</span> base64, requests
+
+<span class="c-kw">with</span> open(<span class="c-str">"customers.xlsx"</span>, <span class="c-str">"rb"</span>) <span class="c-kw">as</span> f:
+    encoded = base64.b64encode(f.read()).decode()
+
+response = requests.post(
+    <span class="c-str">"https://www.datarepli.com/api/v1/mask-file"</span>,
+    headers={<span class="c-str">"Authorization"</span>: <span class="c-str">"Bearer dk_live_your_key_here"</span>},
+    json={
+        <span class="c-str">"file_base64"</span>:   encoded,
+        <span class="c-str">"file_type"</span>:     <span class="c-str">"xlsx"</span>,
+        <span class="c-str">"auto_detect"</span>:   <span class="c-kw">True</span>,
+        <span class="c-str">"output_format"</span>: <span class="c-str">"markdown"</span>,
+        <span class="c-str">"max_rows"</span>:      <span class="c-num">500</span>
+    }
+)
+
+table = response.json()[<span class="c-str">"markdown"</span>]
+
+<span class="c-com"># feed it straight into an LLM — no file upload needed</span>
+prompt = <span class="c-str">f"Summarise the overdue invoices in this data:\n\n{table}"</span></pre>
+      </div>
+
+      <h3>Markdown response</h3>
+      <div class="code-card">
+        <div class="code-head"><span class="code-lang">JSON — 200 OK</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre>{
+  <span class="c-key">"status"</span>: <span class="c-str">"done"</span>,
+  <span class="c-key">"sheets_processed"</span>: <span class="c-num">2</span>,
+  <span class="c-key">"rows_processed"</span>: <span class="c-num">120</span>,
+  <span class="c-key">"fields_masked"</span>: {
+    <span class="c-key">"Invoices"</span>: [<span class="c-str">"Customer_Name"</span>, <span class="c-str">"Email"</span>],
+    <span class="c-key">"Payroll"</span>:  [<span class="c-str">"Full_Name"</span>, <span class="c-str">"SSN"</span>]
+  },
+  <span class="c-key">"output_format"</span>: <span class="c-str">"markdown"</span>,
+  <span class="c-key">"truncated"</span>: <span class="c-kw">false</span>,
+  <span class="c-key">"markdown"</span>: <span class="c-str">"### Invoices\n\n| Invoice_ID | Customer_Name | ..."</span>
+}</pre>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td class="name">markdown</td><td>The masked data as a Markdown table. Multiple sheets appear as separate sections with <code>###</code> headings.</td></tr>
+            <tr><td class="name">truncated</td><td><code>true</code> if <code>max_rows</code> cut any sheet short, so you know some rows are missing.</td></tr>
+            <tr><td class="name">file_base64</td><td>Not returned for Markdown output — request <code>output_format: "file"</code> if you need the spreadsheet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <p>
+          <strong>Row usage is identical either way.</strong> Every row is masked and counts
+          against your quota regardless of format — <code>max_rows</code> only limits what
+          appears in the response, not what gets processed.
+        </p>
+      </div>
+
       <!-- ERRORS -->
       <h2 id="errors">Errors and limits</h2>
       <div class="table-wrap">
@@ -390,12 +478,12 @@ curl -X POST https://www.datarepli.com/api/v1/mask-file \
           <tbody>
             <tr>
               <td class="status-code s-ok">200</td>
-              <td>Success</td><td>Decode <code>file_base64</code> and save it.</td>
+              <td>Success</td><td>Decode <code>file_base64</code>, or read <code>markdown</code>.</td>
             </tr>
             <tr>
               <td class="status-code s-err">400</td>
-              <td>File missing or unreadable</td>
-              <td>Check the file is properly base64-encoded and <code>file_type</code> matches.</td>
+              <td>File missing, unreadable, or bad <code>output_format</code></td>
+              <td>Check the file is properly base64-encoded, <code>file_type</code> matches, and <code>output_format</code> is <code>file</code> or <code>markdown</code>.</td>
             </tr>
             <tr>
               <td class="status-code s-err">401</td>
@@ -512,6 +600,11 @@ curl -X POST https://www.datarepli.com/api/v1/mask-file \
         Replacements are <strong>consistent across sheets</strong>. If the same customer appears in
         three different sheets, they become the same replacement identity in all three, so
         relationships between sheets survive masking and joins still work.
+      </p>
+      <p>
+        In Markdown output, each sheet becomes its own section headed with <code>###</code> and
+        the sheet name, so an LLM can tell them apart. Single-sheet files return just the table
+        with no heading.
       </p>
 
       <div class="callout">
