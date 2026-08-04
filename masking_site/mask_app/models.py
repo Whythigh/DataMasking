@@ -17,6 +17,19 @@ class ApiKey(models.Model):
     def __str__(self):
         return f"{self.email} — {self.name}"
 
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=120)
+    email = models.EmailField()
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    handled = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.name} <{self.email}> — {self.created_at:%Y-%m-%d}"
+
 
 class UsageLog(models.Model):
     api_key = models.ForeignKey(ApiKey, on_delete=models.CASCADE)

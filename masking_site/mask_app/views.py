@@ -202,19 +202,38 @@ def mask_columns(request):
 
 
 def contact_view(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        user_email = request.POST.get('email')
-        user_message = request.POST.get('message')
-        subject = f"New message from {name}"
-        body = f"Name: {name}\nEmail: {user_email}\nMessage:\n{user_message}"
-        try:
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                      ['daniilforsteam@gmail.com'], fail_silently=False)
-            return HttpResponse("Message sent!")
-        except Exception as e:
-            return HttpResponse(f"Error: {str(e)}")
-    return redirect('home')
+    if request.method != 'POST':
+        return redirect('home')
+
+    from .models import ContactMessage
+
+    name = (request.POST.get('name') or '').strip()
+    email = (request.POST.get('email') or '').strip()
+    message = (request.POST.get('message') or '').strip()
+
+    if not (name and email and message):
+        return render(request, 'contact_done.html', {'ok': False})
+
+    try:
+        ContactMessage.objects.create(name=name, email=email, message=message)
+        saved = True
+    except Exception as e:
+        print(f"Contact save failed: {e}")
+        saved = False
+
+    # try to email too — but never let it break the page
+    try:
+        send_mail(
+            subject=f"DataRepli enquiry from {name}",
+            message=f"From: {name} <{email}>\n\n{message}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=['daniilforsteam@gmail.com'],
+            fail_silently=True
+        )
+    except Exception:
+        pass
+
+    return render(request, 'contact_done.html', {'ok': saved})
 
 
 def success(request):
