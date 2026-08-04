@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your masked data · DataRepli</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:#f8fafc; color:#0b1a33; line-height:1.5; }
+.container { max-width:1280px; margin:0 auto; padding:0 32px; }
+
+nav { display:flex; justify-content:space-between; align-items:center; padding:20px 0; border-bottom:1px solid rgba(0,0,0,.04); }
+.logo { font-size:24px; font-weight:700; letter-spacing:-.5px; color:#0b1a33; text-decoration:none; }
+.logo span { color:#2563eb; }
+.nav-back { font-size:14px; color:#64748b; text-decoration:none; display:flex; align-items:center; gap:7px; }
+.nav-back:hover { color:#2563eb; }
+
+.page-wrap { max-width:840px; margin:0 auto; padding:44px 0 72px; }
+
+.progress { display:flex; align-items:center; gap:8px; margin-bottom:28px; justify-content:center; }
+.pstep { display:flex; align-items:center; gap:8px; font-size:13px; color:#94a3b8; }
+.pdot { width:22px; height:22px; border-radius:50%; background:#e2e8f0; color:#94a3b8; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.pstep.done .pdot { background:#dcfce7; color:#166534; }
+.pstep.done { color:#166534; }
+.pstep.active .pdot { background:#2563eb; color:#fff; }
+.pstep.active { color:#2563eb; font-weight:600; }
+.pline { width:28px; height:1px; background:#e2e8f0; }
+
+.tick { width:56px; height:56px; border-radius:50%; background:#dcfce7; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; }
+.tick i { font-size:24px; color:#059669; }
+h1 { font-size:32px; font-weight:700; letter-spacing:-.8px; text-align:center; margin-bottom:8px; }
+.subtitle { text-align:center; color:#64748b; font-size:16px; margin-bottom:30px; }
+
+.summary-bar {
+  display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-bottom:28px;
+}
+.stat {
+  background:#fff; border:1px solid #e9edf2; border-radius:14px;
+  padding:14px 22px; text-align:center; min-width:130px;
+}
+.stat .num { font-size:22px; font-weight:700; color:#0b1a33; }
+.stat .lbl { font-size:12.5px; color:#94a3b8; margin-top:2px; }
+
+.card { background:#fff; border:1px solid #e9edf2; border-radius:18px; padding:24px; margin-bottom:20px; }
+.card-head { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+.card-title { font-size:17px; font-weight:600; display:flex; align-items:center; gap:9px; }
+.card-title i { color:#2563eb; font-size:15px; }
+.card-sub { font-size:13.5px; color:#64748b; margin-bottom:16px; }
+
+.btn-primary {
+  background:#2563eb; border:none; padding:12px 26px; border-radius:40px;
+  font-weight:600; font-size:14.5px; color:#fff; cursor:pointer;
+  text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+  font-family:'Inter',sans-serif; box-shadow:0 4px 12px rgba(37,99,235,.25); transition:all .2s;
+}
+.btn-primary:hover { background:#1d4ed8; transform:translateY(-1px); }
+.btn-green { background:#059669; box-shadow:0 4px 12px rgba(5,150,105,.25); }
+.btn-green:hover { background:#047857; }
+.btn-outline {
+  background:transparent; border:1px solid #cbd5e1; padding:12px 26px;
+  border-radius:40px; font-weight:600; font-size:14.5px; color:#1e293b;
+  text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+  font-family:'Inter',sans-serif; transition:all .2s; cursor:pointer;
+}
+.btn-outline:hover { border-color:#2563eb; color:#2563eb; }
+
+.md-box {
+  background:#0f172a; border-radius:12px; padding:16px 18px;
+  max-height:340px; overflow:auto; margin-top:4px;
+}
+.md-box pre {
+  font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  font-size:12.5px; line-height:1.65; color:#e2e8f0; white-space:pre;
+}
+.trunc-note { font-size:12.5px; color:#94a3b8; margin-top:10px; }
+
+.sheet-summary { list-style:none; }
+.sheet-summary li {
+  display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  padding:11px 0; border-bottom:1px solid #f1f5f9; font-size:14px;
+}
+.sheet-summary li:last-child { border-bottom:none; }
+.sheet-name { font-weight:500; color:#334155; display:flex; align-items:center; gap:8px; }
+.sheet-name i { color:#94a3b8; font-size:13px; }
+.masked-cols { color:#64748b; font-size:13px; text-align:right; }
+.masked-cols code {
+  background:#eff6ff; color:#1e40af; padding:2px 7px; border-radius:5px;
+  font-size:12px; margin-left:4px; display:inline-block; margin-bottom:3px;
+}
+.none-masked { color:#94a3b8; font-style:italic; font-size:13px; }
+
+.upsell {
+  background:#eff6ff; border:1px solid #bfdbfe; border-radius:16px;
+  padding:20px 24px; display:flex; align-items:center; justify-content:space-between;
+  gap:18px; flex-wrap:wrap; margin-top:8px;
+}
+.upsell p { font-size:14.5px; color:#1e40af; margin:0; }
+.upsell strong { font-weight:700; }
+
+.actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:26px; }
+
+@media (max-width:700px){
+  .container { padding:0 20px; }
+  h1 { font-size:26px; }
+  .pstep span.lbl { display:none; }
+  .card { padding:18px; }
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav>
+    <a href="/" class="logo">Data<span>Repli</span></a>
+    <a href="/" class="nav-back"><i class="fas fa-arrow-left"></i> Mask another file</a>
+  </nav>
+</div>
+
+<div class="container">
+  <div class="page-wrap">
+
+    <div class="progress">
+      <div class="pstep done"><span class="pdot"><i class="fas fa-check"></i></span><span class="lbl">Upload</span></div>
+      <div class="pline"></div>
+      <div class="pstep done"><span class="pdot"><i class="fas fa-check"></i></span><span class="lbl">Review</span></div>
+      <div class="pline"></div>
+      <div class="pstep active"><span class="pdot">3</span><span class="lbl">Done</span></div>
+    </div>
+
+    <div class="tick"><i class="fas fa-check"></i></div>
+    <h1>Your data is masked</h1>
+    <p class="subtitle">Copy it straight into an AI tool, or download the spreadsheet.</p>
+
+    <div class="summary-bar">
+      <div class="stat"><div class="num">{{ total_rows }}</div><div class="lbl">rows processed</div></div>
+      <div class="stat"><div class="num">{{ total_masked }}</div><div class="lbl">columns masked</div></div>
+      <div class="stat"><div class="num">{{ sheets|length }}</div><div class="lbl">sheet{{ sheets|length|pluralize }}</div></div>
+    </div>
+
+    <!-- COPY FOR AI -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><i class="fas fa-robot"></i> Paste into an AI tool</div>
+        <button class="btn-primary btn-green" onclick="copyMarkdown()">
+          <i class="fas fa-copy"></i> <span id="copy-label">Copy table</span>
+        </button>
+      </div>
+      <p class="card-sub">Ready to paste into ChatGPT, Claude, Copilot or anywhere else — no file upload needed.</p>
+      <div class="md-box"><pre id="markdown">{{ markdown }}</pre></div>
+      {% if truncated %}
+      <p class="trunc-note"><i class="fas fa-circle-info"></i> Showing the first {{ preview_rows }} rows per sheet. Download the file for everything.</p>
+      {% endif %}
+    </div>
+
+    <!-- DOWNLOAD -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><i class="fas fa-file-excel"></i> Download the spreadsheet</div>
+        <a href="{% url 'download_masked' %}" class="btn-primary"><i class="fas fa-download"></i> Download .xlsx</a>
+      </div>
+      <p class="card-sub">Every sheet included, plus a DataRepli Summary sheet listing exactly what changed.</p>
+    </div>
+
+    <!-- WHAT CHANGED -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px;"><i class="fas fa-list-check"></i> What was masked</div>
+      <ul class="sheet-summary">
+        {% for sheet in sheets %}
+        <li>
+          <span class="sheet-name"><i class="fas fa-table"></i> {{ sheet.name }} <span style="color:#94a3b8;font-weight:400;">· {{ sheet.rows }} rows</span></span>
+          <span class="masked-cols">
+            {% if sheet.masked %}
+              {% for col in sheet.masked %}<code>{{ col }}</code>{% endfor %}
+            {% else %}
+              <span class="none-masked">nothing masked</span>
+            {% endif %}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="upsell">
+      <p><strong>Doing this regularly?</strong> The API masks files automatically from your own scripts or workflows — no browser needed.</p>
+      <a href="/docs" class="btn-outline">See the API</a>
+    </div>
+
+    <div class="actions">
+      <a href="/" class="btn-primary">Mask another file</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function copyMarkdown(){
+  var text = document.getElementById('markdown').textContent;
+  navigator.clipboard.writeText(text);
+  var label = document.getElementById('copy-label');
+  label.textContent = 'Copied';
+  setTimeout(function(){ label.textContent = 'Copy table'; }, 1600);
+}
+</script>
+
+</body>
+</html>

@@ -145,11 +145,10 @@ def mask_columns(request):
 
     sheets = {name: pd.read_json(io.StringIO(j)) for name, j in stored.items()}
 
-    selected = request.POST.getlist('columns')      # ["Sheet||Col", ...]
+    selected = request.POST.getlist('columns')
     if not selected:
         return HttpResponse("No columns selected — nothing to mask.")
 
-    # group selections back by sheet
     by_sheet = {}
     for item in selected:
         if '||' not in item:
@@ -157,7 +156,7 @@ def mask_columns(request):
         sheet_name, col = item.split('||', 1)
         by_sheet.setdefault(sheet_name, []).append(col)
 
-    mapping = {}          # shared across sheets = consistent replacements
+    mapping = {}
     masked_by_sheet = {}
 
     try:
@@ -176,12 +175,11 @@ def mask_columns(request):
     except Exception as e:
         return HttpResponse(f"Error while masking: {e}")
 
-    # ── Build output ──
+    # ── Build the Excel file and keep it in session for download ──
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         for sheet_name, df in sheets.items():
             df.to_excel(writer, index=False, sheet_name=str(sheet_name)[:31])
-
         summary = []
         for sheet_name, masked in masked_by_sheet.items():
             for col in sheets[sheet_name].columns:
@@ -191,14 +189,36 @@ def mask_columns(request):
                     'Status': 'MASKED' if col in masked else 'unchanged',
                 })
         pd.DataFrame(summary).to_excel(writer, index=False, sheet_name='DataRepli Summary')
-
     output.seek(0)
-    response = HttpResponse(
-        output.read(),
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    response['Content-Disposition'] = 'attachment; filename="masked_data.xlsx"'
-    return response
+    request.session['masked_file'] = base64.b64encode(output.read()).decode()
+
+    # ── Build Markdown tables (capped so the page stays usable) ──
+    PREVIEW_ROWS = 100
+    md_blocks = []
+    truncated = False
+    for sheet_name, df in sheets.items():
+        shown = df.head(PREVIEW_ROWS)
+        if len(df) > PREVIEW_ROWS:
+            truncated = True
+        block = df.to_markdown(index=False) if len(sheets) == 1 else \
+                f"### {sheet_name}\n\n" + shown.to_markdown(index=False)
+        md_blocks.append(block)
+    markdown_output = "\n\n".join(md_blocks)
+
+    total_rows = sum(len(df) for df in sheets.values())
+    total_masked = sum(len(c) for c in masked_by_sheet.values())
+
+    return render(request, 'mask_app/results.html', {
+        'markdown': markdown_output,
+        'sheets': [
+            {'name': n, 'rows': len(sheets[n]), 'masked': masked_by_sheet.get(n, [])}
+            for n in sheets
+        ],
+        'total_rows': total_rows,
+        'total_masked': total_masked,
+        'truncated': truncated,
+        'preview_rows': PREVIEW_ROWS,
+    })
 
 
 def contact_view(request):
@@ -543,3 +563,15 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 def docs(request):
     return render(request, 'docs.html')
+
+def download_masked(request):
+    encoded = request.session.get('masked_file')
+    if not encoded:
+        return redirect('home')
+    data = base64.b64decode(encoded)
+    response = HttpResponse(
+        data,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="masked_data.xlsx"'
+    return response

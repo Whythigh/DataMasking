@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.urls import path
-from mask_app.views import (upload_file, mask_columns, contact_view,
-                            home, mask_file_api, stripe_webhook, success, docs)
+from mask_app.views import (upload_file, mask_columns, contact_view, home,
+                            mask_file_api, stripe_webhook, success, docs,
+                            download_masked)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -13,4 +15,5 @@ urlpatterns = [
     path('stripe/webhook', stripe_webhook, name='stripe_webhook'),
     path('success', success, name='success'),
     path('docs', docs, name='docs'),
+    path('download/', download_masked, name='download_masked'),
 ]
