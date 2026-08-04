@@ -375,12 +375,19 @@ def mask_file_api(request):
             'upgrade_url': 'https://www.datarepli.com/#pricing'
         }, status=403)
 
-    file_b64  = request.data.get('file_base64')
-    file_type = request.data.get('file_type', 'xlsx').lower()
-    auto      = request.data.get('auto_detect', True)
+    file_b64      = request.data.get('file_base64')
+    file_type     = request.data.get('file_type', 'xlsx').lower()
+    auto          = request.data.get('auto_detect', True)
+    output_format = request.data.get('output_format', 'file').lower()
+    max_rows      = request.data.get('max_rows')
 
     if not file_b64:
         return Response({'error': 'No file_base64 provided'}, status=400)
+
+    if output_format not in ('file', 'markdown'):
+        return Response({
+            'error': "output_format must be 'file' or 'markdown'"
+        }, status=400)
 
     # ── Read ALL sheets ──
     try:
@@ -447,7 +454,46 @@ def mask_file_api(request):
             'upgrade_url': 'https://www.datarepli.com/#pricing'
         }, status=429)
 
-    # ── Write output ──
+    # ── Record usage (same for both output formats) ──
+    key_record.rows_used_this_month += total_rows
+    key_record.save()
+
+    flat_fields = sorted({c for fields in all_masked_fields.values() for c in fields})
+    UsageLog.objects.create(
+        api_key=key_record,
+        rows_processed=total_rows,
+        fields_masked=flat_fields
+    )
+
+    # ── Markdown output ──
+    if output_format == 'markdown':
+        try:
+            cap = int(max_rows) if max_rows else None
+        except (TypeError, ValueError):
+            cap = None
+
+        blocks = []
+        truncated = False
+        for sheet_name, df in sheets.items():
+            shown = df.head(cap) if cap else df
+            if cap and len(df) > cap:
+                truncated = True
+            if len(sheets) == 1:
+                blocks.append(shown.to_markdown(index=False))
+            else:
+                blocks.append(f"### {sheet_name}\n\n" + shown.to_markdown(index=False))
+
+        return Response({
+            'status':           'done',
+            'sheets_processed': len(sheets),
+            'rows_processed':   total_rows,
+            'fields_masked':    all_masked_fields,
+            'output_format':    'markdown',
+            'truncated':        truncated,
+            'markdown':         "\n\n".join(blocks),
+        })
+
+    # ── File output (default) ──
     output = io.BytesIO()
     if file_type == 'csv':
         list(sheets.values())[0].to_csv(output, index=False)
@@ -472,17 +518,6 @@ def mask_file_api(request):
 
     output.seek(0)
     encoded = base64.b64encode(output.read()).decode('utf-8')
-
-    # ── Update usage ──
-    key_record.rows_used_this_month += total_rows
-    key_record.save()
-
-    flat_fields = sorted({c for fields in all_masked_fields.values() for c in fields})
-    UsageLog.objects.create(
-        api_key=key_record,
-        rows_processed=total_rows,
-        fields_masked=flat_fields
-    )
 
     return Response({
         'status':          'done',

@@ -147,6 +147,40 @@ nav {
 .step h4 { font-size:17px; font-weight:600; margin-bottom:8px; }
 .step p { font-size:14px; color:#64748b; line-height:1.6; }
 
+/* ---------- PASTE-READY CALLOUT ---------- */
+.paste-band { background:#0f172a; padding:56px 0; }
+.paste-inner { display:flex; align-items:center; gap:52px; }
+.paste-text { flex:1; }
+.paste-tag {
+  display:inline-block; background:rgba(37,99,235,.18); color:#93c5fd;
+  font-size:12px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+  padding:5px 14px; border-radius:40px; margin-bottom:16px;
+}
+.paste-text h2 { font-size:32px; font-weight:700; color:#fff; letter-spacing:-.7px; margin-bottom:14px; }
+.paste-text p { font-size:16px; color:#94a3b8; line-height:1.65; margin-bottom:20px; max-width:460px; }
+.paste-list { list-style:none; }
+.paste-list li {
+  display:flex; align-items:flex-start; gap:10px;
+  font-size:14.5px; color:#cbd5e1; padding:5px 0;
+}
+.paste-list i { color:#34d399; margin-top:4px; font-size:13px; }
+.paste-demo { flex:1; max-width:440px; }
+.demo-window { background:#1e293b; border-radius:14px; overflow:hidden; border:1px solid #334155; }
+.demo-bar {
+  display:flex; align-items:center; gap:8px;
+  padding:11px 16px; background:#0f172a; border-bottom:1px solid #334155;
+}
+.demo-dot { width:9px; height:9px; border-radius:50%; }
+.d-r { background:#ef4444; } .d-y { background:#f59e0b; } .d-g { background:#22c55e; }
+.demo-label { font-size:11.5px; color:#64748b; margin-left:6px; }
+.demo-body { padding:16px; overflow-x:auto; }
+.demo-body pre {
+  font-family:ui-monospace,'SF Mono',Menlo,monospace;
+  font-size:11.5px; line-height:1.8; color:#e2e8f0; white-space:pre;
+}
+.demo-body .hdr { color:#7dd3fc; }
+.demo-body .msk { color:#34d399; }
+
 /* ---------- BEFORE / AFTER ---------- */
 .compare-section { background:#fff; border-top:1px solid #e9edf2; border-bottom:1px solid #e9edf2; }
 .compare-wrap { overflow-x:auto; border-radius:16px; border:1px solid #e9edf2; }
@@ -283,6 +317,8 @@ footer { padding:40px 0; border-top:1px solid #e9edf2; }
   .hero-tool { max-width:100%; margin-left:0; }
   .hero-text h1 { font-size:36px; }
   .steps { grid-template-columns:1fr; }
+  .paste-inner { flex-direction:column; gap:32px; }
+  .paste-demo { max-width:100%; width:100%; }
 }
 @media (max-width:700px){
   .nav-links { display:none; }
@@ -290,6 +326,8 @@ footer { padding:40px 0; border-top:1px solid #e9edf2; }
   .enterprise-cta { flex-direction:column; text-align:center; }
   .container { padding:0 20px; }
   .section, .pricing-section { padding:52px 0; }
+  .paste-band { padding:44px 0; }
+  .paste-text h2 { font-size:26px; }
 }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
 </style>
@@ -302,8 +340,8 @@ footer { padding:40px 0; border-top:1px solid #e9edf2; }
     <a href="/" class="logo">Data<span>Repli</span></a>
     <ul class="nav-links">
       <li><a href="#how">How it works</a></li>
+      <li><a href="#paste">Paste into AI</a></li>
       <li><a href="#compare">What gets masked</a></li>
-      <li><a href="#security">Security</a></li>
       <li><a href="#pricing">Pricing</a></li>
       <li><a href="#faq">FAQ</a></li>
     </ul>
@@ -327,6 +365,7 @@ footer { padding:40px 0; border-top:1px solid #e9edf2; }
       <ul class="hero-points">
         <li><i class="fas fa-check-circle"></i> Finds personal data automatically across every sheet — no column picking</li>
         <li><i class="fas fa-check-circle"></i> Keeps formats and numbers intact, so your analysis still works</li>
+        <li><i class="fas fa-check-circle"></i> Copy straight into ChatGPT or Claude — compact format, no file upload</li>
         <li><i class="fas fa-check-circle"></i> Returns a summary showing exactly what was changed</li>
       </ul>
       <div class="hero-ctas">
@@ -339,7 +378,7 @@ footer { padding:40px 0; border-top:1px solid #e9edf2; }
     <div class="hero-tool">
       <span class="badge-free"><i class="fas fa-check-circle"></i> No sign-up required</span>
       <h3>Free data masker</h3>
-      <p class="sub">Upload a CSV, Excel or XML file and get masked results back in seconds — every sheet processed automatically.</p>
+      <p class="sub">Upload a CSV, Excel or XML file, get masked results in seconds — download the file, or copy it straight into an AI chat.</p>
 
       <form method="post" enctype="multipart/form-data" action="/upload/">
         {% csrf_token %}
@@ -403,7 +442,7 @@ footer { padding:40px 0; border-top:1px solid #e9edf2; }
   <div class="container">
     <div class="section-head">
       <h2>Three steps, no configuration</h2>
-      <p>Upload, mask, download. Or call the API and skip the browser entirely.</p>
+      <p>Upload, mask, use. Or call the API and skip the browser entirely.</p>
     </div>
     <div class="steps">
       <div class="step">
@@ -418,8 +457,47 @@ footer { padding:40px 0; border-top:1px solid #e9edf2; }
       </div>
       <div class="step">
         <div class="step-num">3</div>
-        <h4>Get a safe file back</h4>
-        <p>Personal data is replaced with realistic substitutes. Amounts, dates and categories stay untouched. The same person gets the same replacement in every sheet, so relationships between tables survive. A summary sheet lists exactly what changed.</p>
+        <h4>Download it, or paste straight into AI</h4>
+        <p>Get the masked spreadsheet as a file — or copy the data as a ready-formatted table and paste it directly into ChatGPT, Claude or Copilot. No downloading and re-uploading.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- PASTE INTO AI ---------- -->
+<section class="paste-band" id="paste">
+  <div class="container">
+    <div class="paste-inner">
+      <div class="paste-text">
+        <span class="paste-tag"><i class="fas fa-robot"></i> Built for AI chats</span>
+        <h2>Skip the file upload entirely</h2>
+        <p>
+          Every masked file also comes back as a ready-formatted table you can copy
+          with one click and paste directly into ChatGPT, Claude or Copilot.
+        </p>
+        <ul class="paste-list">
+          <li><i class="fas fa-check"></i> No downloading and re-uploading files</li>
+          <li><i class="fas fa-check"></i> Compact format — fewer tokens than JSON</li>
+          <li><i class="fas fa-check"></i> Structured so the AI reads it correctly</li>
+          <li><i class="fas fa-check"></i> Available in the free tool and the API</li>
+        </ul>
+      </div>
+      <div class="paste-demo">
+        <div class="demo-window">
+          <div class="demo-bar">
+            <span class="demo-dot d-r"></span>
+            <span class="demo-dot d-y"></span>
+            <span class="demo-dot d-g"></span>
+            <span class="demo-label">ready to paste</span>
+          </div>
+          <div class="demo-body">
+<pre><span class="hdr">| Invoice  | Customer      | Amount  |
+|----------|---------------|---------|</span>
+| INV-1001 | <span class="msk">Julia Meyer</span>   | 1247.50 |
+| INV-1002 | <span class="msk">Marcus Weber</span>  |  830.00 |
+| INV-1003 | <span class="msk">Elena Rossi</span>   | 2100.75 |</pre>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -504,14 +582,15 @@ footer { padding:40px 0; border-top:1px solid #e9edf2; }
       <div class="pricing-card">
         <div class="plan-name">Free</div>
         <div class="price">€0 <span>/mo</span></div>
-        <div class="description">Mask files by hand in the browser.</div>
+        <div class="description">Mask files in the browser, as often as you like.</div>
         <ul>
           <li><i class="fas fa-check-circle"></i> Web tool, unlimited use</li>
           <li><i class="fas fa-check-circle"></i> CSV, Excel &amp; XML</li>
+          <li><i class="fas fa-check-circle"></i> Copy-to-AI table output</li>
           <li><i class="fas fa-check-circle"></i> Masking summary included</li>
           <li class="off"><i class="fas fa-circle-minus"></i> No API access</li>
         </ul>
-        <a href="/upload/" class="btn-card">Use the free tool</a>
+        <a href="#" class="btn-card" onclick="event.preventDefault(); document.getElementById('file-input').click()">Use the free tool</a>
       </div>
 
       <div class="pricing-card popular">
@@ -523,7 +602,7 @@ footer { padding:40px 0; border-top:1px solid #e9edf2; }
           <li><i class="fas fa-check-circle"></i> Everything in Free</li>
           <li><i class="fas fa-check-circle"></i> REST API access</li>
           <li><i class="fas fa-check-circle"></i> 500,000 rows / month</li>
-          <li><i class="fas fa-check-circle"></i> Multi-sheet workbooks</li>
+          <li><i class="fas fa-check-circle"></i> File or AI-ready table output</li>
           <li><i class="fas fa-check-circle"></i> Email support</li>
         </ul>
         <a href="https://buy.stripe.com/test_aFafZg6kSenY0PcaLk7bW01" class="btn-card">Start Pro</a>
@@ -583,8 +662,12 @@ footer { padding:40px 0; border-top:1px solid #e9edf2; }
         <p>It shouldn't. Amounts, dates, categories and codes are left untouched — only identifying fields are replaced, and they keep the same shape. If a column gets masked that you needed intact, you can exclude it.</p>
       </div>
       <div class="faq-item">
+        <h4>How do I get the data into ChatGPT or Claude?</h4>
+        <p>After masking, you get a formatted table you can copy with one click and paste straight into the chat — no file upload needed. It's a compact format that uses fewer tokens than JSON and that AI tools read reliably.</p>
+      </div>
+      <div class="faq-item">
         <h4>What if it misses something, or masks the wrong column?</h4>
-        <p>Automatic detection is good but not perfect, which is why every file comes back with a summary sheet listing what changed. Through the API you can also force specific columns to be masked or left alone.</p>
+        <p>Automatic detection is good but not perfect, which is why every file comes back with a summary listing what changed, and why you can adjust the selection before masking. Through the API you can force specific columns to be masked or left alone.</p>
       </div>
       <div class="faq-item">
         <h4>Do you store the files I upload?</h4>
@@ -622,6 +705,7 @@ footer { padding:40px 0; border-top:1px solid #e9edf2; }
       <ul class="footer-links">
         <li><a href="#how">How it works</a></li>
         <li><a href="#pricing">Pricing</a></li>
+        <li><a href="/docs">API docs</a></li>
         <li><a href="#faq">FAQ</a></li>
         <li><a href="#" class="open-modal">Contact</a></li>
       </ul>
