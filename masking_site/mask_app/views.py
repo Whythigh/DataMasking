@@ -193,14 +193,14 @@ def mask_columns(request):
     request.session['masked_file'] = base64.b64encode(output.read()).decode()
 
     # ── Build Markdown tables (capped so the page stays usable) ──
-    PREVIEW_ROWS = 100
+    PREVIEW_ROWS = 500
     md_blocks = []
     truncated = False
     for sheet_name, df in sheets.items():
         shown = df.head(PREVIEW_ROWS)
         if len(df) > PREVIEW_ROWS:
             truncated = True
-        block = df.to_markdown(index=False) if len(sheets) == 1 else \
+        block = shown.to_markdown(index=False) if len(sheets) == 1 else \
                 f"### {sheet_name}\n\n" + shown.to_markdown(index=False)
         md_blocks.append(block)
     markdown_output = "\n\n".join(md_blocks)
